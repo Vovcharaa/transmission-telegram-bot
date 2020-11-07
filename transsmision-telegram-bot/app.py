@@ -45,7 +45,7 @@ class TranssmissionTelegramBot:
 
     def memory(update, context):
         free_memory = trans.utils.format_size(transClient.free_space(DISK))
-        formatted_memory = f"Вільно {free_memory[0]} {free_memory[1]}"
+        formatted_memory = f"Вільно {round(free_memory[0], 2)} {free_memory[1]}"
         update.message.reply_text(formatted_memory)
 
     def get_torrents_command(update, context):
@@ -54,11 +54,19 @@ class TranssmissionTelegramBot:
 
     def get_commands_inline(update, context):
         query = update.callback_query
-        start_point = int(query.data.split("_")[1])
-        query.answer()
-        torrent_list, keyboard = TranssmissionTelegramBot.get_torrents(start_point)
-        query.edit_message_text(text=torrent_list, reply_markup=keyboard)
-        # query.edit_message_reply_markup(keyboard)
+        callback = query.data.split("_")
+        start_point = int(callback[1])
+        if len(callback) == 3 and callback[2] == "reload":
+            torrent_list, keyboard = TranssmissionTelegramBot.get_torrents(start_point)
+            try:
+                query.edit_message_text(text=torrent_list, reply_markup=keyboard)
+                query.answer(text="Reloaded")
+            except telegram.error.BadRequest:
+                query.answer(text="Nothing to reload")
+        else:
+            query.answer()
+            torrent_list, keyboard = TranssmissionTelegramBot.get_torrents(start_point)
+            query.edit_message_text(text=torrent_list, reply_markup=keyboard)
 
     def get_torrents(start_point=0):
         """
@@ -77,7 +85,10 @@ class TranssmissionTelegramBot:
         for torrent in torrents[start_point:]:
             if torrents_count <= SIZE_OF_PAGE:
                 if len(torrent.name) >= SIZE_OF_LINE:
-                    name = f"{torrent.name[:SIZE_OF_LINE]}..   {STATUS_LIST[torrent.status]}"
+                    name = (
+                        f"{torrent.name[:SIZE_OF_LINE]}.."
+                        f"   {STATUS_LIST[torrent.status]}"
+                    )
                 else:
                     name = torrent.name
                 torrent_list += f"{count+1}. {name}\n"
@@ -96,6 +107,14 @@ class TranssmissionTelegramBot:
             else:
                 keyboard.append(list())
                 row += 1
+                keyboard[row].append(
+                    telegram.InlineKeyboardButton(
+                        "🔄Reload",
+                        callback_data=f"torrentsgoto_{start_point}_reload",
+                    )
+                )
+                keyboard.append(list())
+                row += 1
                 if start_point != 0:
                     keyboard[row].append(
                         telegram.InlineKeyboardButton(
@@ -111,6 +130,14 @@ class TranssmissionTelegramBot:
                 )
                 break
         else:
+            keyboard.append(list())
+            row += 1
+            keyboard[row].append(
+                telegram.InlineKeyboardButton(
+                    "🔄Reload",
+                    callback_data=f"torrentsgoto_{start_point}",
+                )
+            )
             keyboard.append(list())
             row += 1
             if start_point != 0:
