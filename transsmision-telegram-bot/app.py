@@ -135,7 +135,7 @@ class TranssmissionTelegramBot:
             keyboard[row].append(
                 telegram.InlineKeyboardButton(
                     "🔄Reload",
-                    callback_data=f"torrentsgoto_{start_point}",
+                    callback_data=f"torrentsgoto_{start_point}_reload",
                 )
             )
             keyboard.append(list())
