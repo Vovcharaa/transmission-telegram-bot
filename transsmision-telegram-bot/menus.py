@@ -1,6 +1,7 @@
 import telegram
 import transmission_rpc as trans
 from . import config, utils
+from typing import Tuple
 
 
 STATUS_LIST = {
@@ -13,7 +14,7 @@ STATUS_LIST = {
 transClient = trans.Client(host=config.TRANSSMISION_HOST, port=9091)
 
 
-def menu():
+def menu() -> str:
     text = (
         "List of available commands:\n"
         "/torrents - List all torrents\n"
@@ -22,13 +23,13 @@ def menu():
     return text
 
 
-def get_memory():
+def get_memory() -> str:
     free_memory = trans.utils.format_size(transClient.free_space(config.DISK))
     formatted_memory = f"Вільно {round(free_memory[0], 2)} {free_memory[1]}"
     return formatted_memory
 
 
-def torrent_menu(torrent_id: int) -> tuple[str, telegram.InlineKeyboardMarkup]:
+def torrent_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
     torrent = transClient.get_torrent(torrent_id)
     text = (
         f"{torrent.name}\n"
@@ -36,9 +37,14 @@ def torrent_menu(torrent_id: int) -> tuple[str, telegram.InlineKeyboardMarkup]:
         f"{STATUS_LIST[torrent.status]}\n"
     )
     if download := torrent._fields["rateDownload"].value:
-        text += f"{torrent.format_eta()}\nDownload rate: {download}\n"
+        speed = trans.utils.format_speed(download)
+        text += (
+            f"Time remaining: {utils.formated_eta(torrent)}\n"
+            f"Download rate: {round(speed[0], 1)} {speed[1]}\n"
+        )
     if upload := torrent._fields["rateUpload"].value:
-        text += f"Upload rate: {upload}\n"
+        speed = trans.utils.format_speed(upload)
+        text += f"Upload rate: {round(speed[0], 1)} {speed[1]}\n"
     reply_markup = telegram.InlineKeyboardMarkup(
         [
             [
@@ -58,7 +64,7 @@ def torrent_menu(torrent_id: int) -> tuple[str, telegram.InlineKeyboardMarkup]:
     return text, reply_markup
 
 
-def get_torrents(start_point: int = 0) -> tuple[str, telegram.InlineKeyboardMarkup]:
+def get_torrents(start_point: int = 0) -> Tuple[str, telegram.InlineKeyboardMarkup]:
     """
     Generates list of torrents with keyboard
     """

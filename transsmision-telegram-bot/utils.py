@@ -2,6 +2,7 @@ import math
 import time
 
 import pyngrok.ngrok
+import transmission_rpc as trans
 
 from . import config
 
@@ -20,10 +21,27 @@ def setup_ngrok_webhook(updater):
     updater.start_webhook(listen="127.0.0.1", port=config.PORT, url_path=config.TOKEN)
 
 
-def progress_bar(percent: float):
+def progress_bar(percent: float) -> str:
     progres = math.floor(percent / 10)
     progres_string = (
         f'{config.PROGRESS_BAR_EMOJIS["done"] * progres}'
         f'{config.PROGRESS_BAR_EMOJIS["inprogress"] * (10-progres)}'
     )
     return progres_string
+
+
+def formated_eta(torrent: trans.Torrent) -> str:
+    try:
+        eta = torrent.eta
+    except ValueError:
+        return "Unavailable"
+    minutes, seconds = divmod(eta.seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    text = ""
+    if eta.days:
+        text += f"{eta.days} days "
+    if hours:
+        text += f"{hours} h {minutes} min"
+    else:
+        text += f"{minutes} min {seconds} sec"
+    return text
