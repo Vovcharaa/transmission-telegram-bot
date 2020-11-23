@@ -1,4 +1,4 @@
-from .app import TranssmissionTelegramBot
+from .app import run
 
-if __name__ == '__main__':
-    TranssmissionTelegramBot.run()
+if __name__ == "__main__":
+    run()
