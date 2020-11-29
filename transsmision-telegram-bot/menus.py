@@ -81,13 +81,10 @@ def get_torrents(start_point: int = 0) -> Tuple[str, telegram.InlineKeyboardMark
     for torrent in torrents[start_point:]:
         if torrents_count <= SIZE_OF_PAGE:
             if len(torrent.name) >= SIZE_OF_LINE:
-                name = (
-                    f"{torrent.name[:SIZE_OF_LINE]}.."
-                    f"   {STATUS_LIST[torrent.status]}"
-                )
+                name = f"{torrent.name[:SIZE_OF_LINE]}.."
             else:
                 name = torrent.name
-            torrent_list += f"{count+1}. {name}\n"
+            torrent_list += f"{count+1}. {name}   {STATUS_LIST[torrent.status]}\n"
             if column >= KEYBORD_WIDTH:
                 keyboard.append(list())
                 column = 0

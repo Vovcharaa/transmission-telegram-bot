@@ -3,11 +3,12 @@ import time
 
 import pyngrok.ngrok
 import transmission_rpc as trans
+from telegram.ext import Updater
 
 from . import config
 
 
-def setup_ngrok_webhook(updater):
+def setup_ngrok_webhook(updater: Updater):
     """
     Setups ngrok tunnel and telegram webhook on it
     """
@@ -17,8 +18,8 @@ def setup_ngrok_webhook(updater):
     time.sleep(1)
     public_url = webhook_tunnel.public_url
     webhook = public_url.replace("http:", "https:")
-    updater.bot.set_webhook(f"{webhook}/{config.TOKEN}")
     updater.start_webhook(listen="127.0.0.1", port=config.PORT, url_path=config.TOKEN)
+    updater.bot.set_webhook(f"{webhook}/{config.TOKEN}")
 
 
 def progress_bar(percent: float) -> str:
