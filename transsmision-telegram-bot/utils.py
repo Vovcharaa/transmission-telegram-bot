@@ -46,3 +46,12 @@ def formated_eta(torrent: trans.Torrent) -> str:
     else:
         text += f"{minutes} min {seconds} sec"
     return text
+
+
+def file_progress(file: trans.File) -> float:
+    try:
+        size = file.size
+        completed = file.completed
+        return 100.0 * (completed / size)
+    except ZeroDivisionError:
+        return 0.0

@@ -11,6 +11,7 @@ STATUS_LIST = {
     "check pending": "📡",
     "stopped": "🛑",
 }
+
 transClient = trans.Client(host=config.TRANSSMISION_HOST, port=9091)
 
 
@@ -36,17 +37,29 @@ def torrent_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
         f"{utils.progress_bar(torrent.progress)}  {round(torrent.progress, 1)}% "
         f"{STATUS_LIST[torrent.status]}\n"
     )
-    if download := torrent._fields["rateDownload"].value:
+    if download := torrent.rateDownload:
         speed = trans.utils.format_speed(download)
         text += (
             f"Time remaining: {utils.formated_eta(torrent)}\n"
             f"Download rate: {round(speed[0], 1)} {speed[1]}\n"
         )
-    if upload := torrent._fields["rateUpload"].value:
+    if torrent.status != "seeding":
+        downloaded_bytes: int = torrent.sizeWhenDone - torrent.leftUntilDone
+        downloaded = trans.utils.format_size(downloaded_bytes)
+        text += f"Downloaded: {round(downloaded[0],2)} {downloaded[1]}\n"
+    if upload := torrent.rateUpload:
         speed = trans.utils.format_speed(upload)
         text += f"Upload rate: {round(speed[0], 1)} {speed[1]}\n"
+    sizeWhenDone = trans.utils.format_size(torrent.sizeWhenDone)
+    text += f"Total size for download: {round(sizeWhenDone[0], 2)} {sizeWhenDone[1]}"
     reply_markup = telegram.InlineKeyboardMarkup(
         [
+            [
+                telegram.InlineKeyboardButton(
+                    "📂Files",
+                    callback_data=f"torrentsfiles_{torrent_id}",
+                )
+            ],
             [
                 telegram.InlineKeyboardButton(
                     "🔄Reload",
@@ -57,6 +70,46 @@ def torrent_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
                 telegram.InlineKeyboardButton(
                     "⏪Back",
                     callback_data="torrentsgoto_0",
+                )
+            ],
+        ]
+    )
+    return text, reply_markup
+
+
+def get_files(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
+    SIZE_OF_LINE = 45
+
+    torrent = transClient.get_torrent(torrent_id)
+    if len(torrent.name) >= SIZE_OF_LINE:
+        name = f"{torrent.name[:SIZE_OF_LINE]}.."
+    else:
+        name = torrent.name
+    text = f"{name}\n"
+    text += "Files:\n"
+    for file_id, file in enumerate(torrent.files()):
+        raw_name = file.name.split("/")
+        if len(raw_name) == 2:
+            filename = raw_name[1]
+        else:
+            filename = file.name
+        if len(filename) >= SIZE_OF_LINE:
+            filename = f"{filename[:SIZE_OF_LINE]}.."
+        text += (
+            f"{file_id+1}. {filename}  {round(utils.file_progress(file), 1)}%\n"
+            )
+    reply_markup = telegram.InlineKeyboardMarkup(
+        [
+            [
+                telegram.InlineKeyboardButton(
+                    "🔄Reload",
+                    callback_data=f"torrentsfiles_{torrent_id}_reload",
+                )
+            ],
+            [
+                telegram.InlineKeyboardButton(
+                    "⏪Back",
+                    callback_data=f"torrent_{torrent_id}",
                 )
             ],
         ]

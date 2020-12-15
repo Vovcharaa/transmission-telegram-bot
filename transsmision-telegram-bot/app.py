@@ -51,6 +51,22 @@ def torrent_menu_inline(update, context):
         query.edit_message_text(text=text, reply_markup=reply_markup)
 
 
+def torrent_files_inline(update, context):
+    query = update.callback_query
+    callback = query.data.split("_")
+    torrent_id = int(callback[1])
+    text, reply_markup = menus.get_files(torrent_id)
+    if len(callback) == 3 and callback[2] == "reload":
+        try:
+            query.edit_message_text(text=text, reply_markup=reply_markup)
+            query.answer(text="Reloaded")
+        except telegram.error.BadRequest:
+            query.answer(text="Nothing to reload")
+    else:
+        query.answer()
+        query.edit_message_text(text=text, reply_markup=reply_markup)
+
+
 def run():
     bot = telegram.Bot(token=config.TOKEN)
     updater = Updater(token=config.TOKEN)
@@ -59,6 +75,9 @@ def run():
     updater.dispatcher.add_handler(CommandHandler("menu", start))
     updater.dispatcher.add_handler(CommandHandler("memory", memory))
     updater.dispatcher.add_handler(CommandHandler("torrents", get_torrents_command))
+    updater.dispatcher.add_handler(
+        CallbackQueryHandler(torrent_files_inline, pattern="torrentsfiles_*")
+    )
     updater.dispatcher.add_handler(
         CallbackQueryHandler(get_torrents_inline, pattern="torrentsgoto_*")
     )
