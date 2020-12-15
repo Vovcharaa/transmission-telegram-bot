@@ -23,6 +23,10 @@ def stop_torrent(torrent_id: int):
     transClient.stop_torrent(torrent_id)
 
 
+def delete_torrent(torrent_id: int, data: bool = False):
+    transClient.remove_torrent(torrent_id, delete_data=data)
+
+
 def menu() -> str:
     text = (
         "List of available commands:\n"
@@ -79,13 +83,19 @@ def torrent_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
             start_stop,
             [
                 telegram.InlineKeyboardButton(
+                    "🗑Delete",
+                    callback_data=f"deletemenutorrent_{torrent_id}",
+                )
+            ],
+            [
+                telegram.InlineKeyboardButton(
                     "📂Files",
                     callback_data=f"torrentsfiles_{torrent_id}",
                 ),
                 telegram.InlineKeyboardButton(
                     "🔄Reload",
                     callback_data=f"torrent_{torrent_id}_reload",
-                )
+                ),
             ],
             [
                 telegram.InlineKeyboardButton(
@@ -214,3 +224,35 @@ def get_torrents(start_point: int = 0) -> Tuple[str, telegram.InlineKeyboardMark
             )
     reply_markup = telegram.InlineKeyboardMarkup(keyboard)
     return torrent_list, reply_markup
+
+
+def delete_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
+    torrent = transClient.get_torrent(torrent_id)
+    text = (
+        "⚠️Do you really want to delete this torrent?⚠️\n"
+        f"{torrent.name}\n"
+        "You also can delete torrent with all downloaded data."
+    )
+    reply_markup = telegram.InlineKeyboardMarkup(
+        [
+            [
+                telegram.InlineKeyboardButton(
+                    "❌Yes❌",
+                    callback_data=f"deletetorrent_{torrent_id}",
+                )
+            ],
+            [
+                telegram.InlineKeyboardButton(
+                    "❌Yes, with data❌",
+                    callback_data=f"deletetorrent_{torrent_id}_data",
+                )
+            ],
+            [
+                telegram.InlineKeyboardButton(
+                    "⏪Back",
+                    callback_data=f"torrent_{torrent_id}",
+                )
+            ],
+        ]
+    )
+    return text, reply_markup
