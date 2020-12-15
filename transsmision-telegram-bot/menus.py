@@ -2,6 +2,7 @@ import telegram
 import transmission_rpc as trans
 from . import config, utils
 from typing import Tuple
+import base64
 
 
 STATUS_LIST = {
@@ -27,12 +28,24 @@ def delete_torrent(torrent_id: int, data: bool = False):
     transClient.remove_torrent(torrent_id, delete_data=data)
 
 
+def add_torrent_with_file(file):
+    encoded_file = base64.b64encode(file).decode("utf-8")
+    torrent = transClient.add_torrent(encoded_file, paused=True)
+    return torrent
+
+
 def menu() -> str:
     text = (
         "List of available commands:\n"
         "/torrents - List all torrents\n"
         "/memory - Available memory\n"
+        "/add - Add torrent"
     )
+    return text
+
+
+def add_torrent() -> str:
+    text = "Just send torrent file or magnet url to the bot"
     return text
 
 
@@ -253,6 +266,51 @@ def delete_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
                     callback_data=f"torrent_{torrent_id}",
                 )
             ],
+        ]
+    )
+    return text, reply_markup
+
+
+def add_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
+    torrent = transClient.get_torrent(torrent_id)
+    text = "🆕Adding torrent🆕\n"
+    text += f"{torrent.name}\n"
+    text += "Files:\n"
+    for file_id, file in enumerate(torrent.files()):
+        raw_name = file.name.split("/")
+        if len(raw_name) == 2:
+            filename = raw_name[1]
+        else:
+            filename = file.name
+        text += f"{file_id+1}. {filename}\n"
+    reply_markup = telegram.InlineKeyboardMarkup(
+        [
+            [
+                telegram.InlineKeyboardButton(
+                    "▶️Start",
+                    callback_data=f"torrentadd_{torrent_id}_start",
+                ),
+                telegram.InlineKeyboardButton(
+                    "❌Cancel",
+                    callback_data=f"torrentadd_{torrent_id}_cancel",
+                )
+            ]
+        ]
+    )
+    return text, reply_markup
+
+
+def started_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
+    torrent = transClient.get_torrent(torrent_id)
+    text = f"Torrent {torrent.name} started successfully\n"
+    reply_markup = telegram.InlineKeyboardMarkup(
+        [
+            [
+                telegram.InlineKeyboardButton(
+                    "Open Torrent",
+                    callback_data=f"torrent_{torrent_id}",
+                )
+            ]
         ]
     )
     return text, reply_markup
