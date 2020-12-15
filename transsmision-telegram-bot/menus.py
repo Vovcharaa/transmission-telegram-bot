@@ -15,6 +15,14 @@ STATUS_LIST = {
 transClient = trans.Client(host=config.TRANSSMISION_HOST, port=9091)
 
 
+def start_torrent(torrent_id: int):
+    transClient.start_torrent(torrent_id)
+
+
+def stop_torrent(torrent_id: int):
+    transClient.stop_torrent(torrent_id)
+
+
 def menu() -> str:
     text = (
         "List of available commands:\n"
@@ -52,15 +60,28 @@ def torrent_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
         text += f"Upload rate: {round(speed[0], 1)} {speed[1]}\n"
     sizeWhenDone = trans.utils.format_size(torrent.sizeWhenDone)
     text += f"Total size for download: {round(sizeWhenDone[0], 2)} {sizeWhenDone[1]}"
+    if torrent.status == "stopped":
+        start_stop = [
+            telegram.InlineKeyboardButton(
+                "▶️Start",
+                callback_data=f"torrent_{torrent_id}_start",
+            )
+        ]
+    else:
+        start_stop = [
+            telegram.InlineKeyboardButton(
+                "⏹Stop",
+                callback_data=f"torrent_{torrent_id}_stop",
+            )
+        ]
     reply_markup = telegram.InlineKeyboardMarkup(
         [
+            start_stop,
             [
                 telegram.InlineKeyboardButton(
                     "📂Files",
                     callback_data=f"torrentsfiles_{torrent_id}",
-                )
-            ],
-            [
+                ),
                 telegram.InlineKeyboardButton(
                     "🔄Reload",
                     callback_data=f"torrent_{torrent_id}_reload",
@@ -95,9 +116,7 @@ def get_files(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
             filename = file.name
         if len(filename) >= SIZE_OF_LINE:
             filename = f"{filename[:SIZE_OF_LINE]}.."
-        text += (
-            f"{file_id+1}. {filename}  {round(utils.file_progress(file), 1)}%\n"
-            )
+        text += f"{file_id+1}. {filename}  {round(utils.file_progress(file), 1)}%\n"
     reply_markup = telegram.InlineKeyboardMarkup(
         [
             [

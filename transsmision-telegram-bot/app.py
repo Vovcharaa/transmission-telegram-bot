@@ -1,3 +1,5 @@
+import time
+
 import telegram
 from telegram.ext import CallbackQueryHandler, CommandHandler, Updater
 
@@ -39,6 +41,15 @@ def torrent_menu_inline(update, context):
     query = update.callback_query
     callback = query.data.split("_")
     torrent_id = int(callback[1])
+    if len(callback) == 3 and callback[2] != "reload":
+        if callback[2] == "start":
+            menus.start_torrent(torrent_id)
+            query.answer(text="Started")
+            time.sleep(0.2)
+        elif callback[2] == "stop":
+            menus.stop_torrent(torrent_id)
+            query.answer(text="Stopped")
+            time.sleep(0.2)
     text, reply_markup = menus.torrent_menu(torrent_id)
     if len(callback) == 3 and callback[2] == "reload":
         try:
