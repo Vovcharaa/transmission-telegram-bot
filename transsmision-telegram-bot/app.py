@@ -115,6 +115,14 @@ def torrent_file_handler(update, context):
     update.message.reply_text(text=text, reply_markup=reply_markup)
 
 
+def magnet_url_handler(update, context):
+    magnet_url = update.message.text
+    torrent = menus.add_torrent_with_magnet(magnet_url)
+    update.message.reply_text("Torrent added", quote=True)
+    text, reply_markup = menus.add_menu(torrent.id)
+    update.message.reply_text(text=text, reply_markup=reply_markup)
+
+
 def after_adding(update, context):
     query = update.callback_query
     callback = query.data.split("_")
@@ -136,6 +144,11 @@ def run():
     utils.setup_ngrok_webhook(updater)
     updater.dispatcher.add_handler(
         MessageHandler(Filters.document.file_extension("torrent"), torrent_file_handler)
+    )
+    updater.dispatcher.add_handler(
+        MessageHandler(
+            Filters.regex(r"\Amagnet:\?xt=urn:btih:.*"), magnet_url_handler
+        )
     )
     updater.dispatcher.add_handler(CommandHandler("start", start))
     updater.dispatcher.add_handler(CommandHandler("menu", start))

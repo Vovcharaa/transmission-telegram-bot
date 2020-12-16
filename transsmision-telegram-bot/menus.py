@@ -34,6 +34,11 @@ def add_torrent_with_file(file):
     return torrent
 
 
+def add_torrent_with_magnet(url):
+    torrent = transClient.add_torrent(url, paused=True)
+    return torrent
+
+
 def menu() -> str:
     text = (
         "List of available commands:\n"
