@@ -50,4 +50,4 @@ jobs:
           pull: true
           tags: |
             ghcr.io/vovcharaa/transmission-telegram-bot:latest
-            ghcr.io/vovcharaa/transmission-telegram-bot:$TAG
+            ghcr.io/vovcharaa/transmission-telegram-bot:${{ env.TAG }}
