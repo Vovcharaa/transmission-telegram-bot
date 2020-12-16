@@ -1,4 +1,5 @@
 import time
+import logging
 
 import telegram
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler, Updater
@@ -139,6 +140,8 @@ def after_adding(update, context):
 
 
 def run():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
     bot = telegram.Bot(token=config.TOKEN)
     updater = Updater(token=config.TOKEN)
     utils.setup_ngrok_webhook(updater)
@@ -146,9 +149,7 @@ def run():
         MessageHandler(Filters.document.file_extension("torrent"), torrent_file_handler)
     )
     updater.dispatcher.add_handler(
-        MessageHandler(
-            Filters.regex(r"\Amagnet:\?xt=urn:btih:.*"), magnet_url_handler
-        )
+        MessageHandler(Filters.regex(r"\Amagnet:\?xt=urn:btih:.*"), magnet_url_handler)
     )
     updater.dispatcher.add_handler(CommandHandler("start", start))
     updater.dispatcher.add_handler(CommandHandler("menu", start))
@@ -173,5 +174,6 @@ def run():
     updater.dispatcher.add_handler(
         CallbackQueryHandler(torrent_menu_inline, pattern="torrent_*")
     )
-    print(bot.get_me())
+    bot = bot.get_me()
+    logger.info("Started bot %s at https://t.me/%s", bot["first_name"], bot["username"])
     updater.idle()
