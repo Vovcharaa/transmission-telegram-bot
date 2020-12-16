@@ -23,14 +23,14 @@ jobs:
 
       - name: Install git-chglog3
         run: |
-          echo "::add-path::$(go env GOPATH)/bin"
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
           go get -u github.com/git-chglog/git-chglog/cmd/git-chglog
       - name: Generate Changlog
         run: |
           git-chglog "$TAG" | node -p 'require("fs").readFileSync(0).toString().trim()
             .split("\n").slice(1).join("\n").trim()' > chglog.md
       - name: Upload Github Release
-        run: gh release create "$TAG" -F chglog.md ./dist/*
+        run: gh release create "$TAG" -F chglog.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       -
