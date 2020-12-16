@@ -1,7 +1,5 @@
 <h1 align="center">
-  <br>
   Transmission Telegram Bot
-  <br>
 </h1>
 
 ## Available commands

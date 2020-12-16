@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   transmission-telegram-bot:
-    image: 'ghcr.io/Vovcharaa/transmission-telegram-bot:latest'
+    image: 'ghcr.io/vovcharaa/transmission-telegram-bot:latest'
     container_name: 'transmission-telegram-bot'
     restart: unless-stopped
     env_file:
