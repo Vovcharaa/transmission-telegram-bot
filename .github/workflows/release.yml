@@ -16,7 +16,7 @@ jobs:
 # create github release
 
       - name: Get Tag Name
-        run: echo ::set-env name=TAG::${GITHUB_REF##*/}
+        run: echo TAG=${GITHUB_REF##*/} >> $GITHUB_ENV
 
       - name: Set up Go
         uses: actions/setup-go@v2
@@ -49,5 +49,5 @@ jobs:
           push: true
           pull: true
           tags: |
-            ghcr.io/Vovcharaa/transmission-telegram-bot:latest
-            ghcr.io/Vovcharaa/transmission-telegram-bot:$TAG
+            ghcr.io/vovcharaa/transmission-telegram-bot:latest
+            ghcr.io/vovcharaa/transmission-telegram-bot:$TAG

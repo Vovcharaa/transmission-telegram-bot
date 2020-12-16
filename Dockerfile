@@ -1,4 +1,4 @@
-FROM python:3-alpine
+FROM python:3.9-slim
 RUN pip install wheel
 WORKDIR /app
 COPY requirements.txt .
