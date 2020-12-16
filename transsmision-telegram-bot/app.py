@@ -174,6 +174,15 @@ def run():
     updater.dispatcher.add_handler(
         CallbackQueryHandler(torrent_menu_inline, pattern="torrent_*")
     )
+    bot.set_my_commands(
+        [
+            ("start", "Open menu with commands"),
+            ("menu", "Open menu with commands"),
+            ("torrents", "List all torrents"),
+            ("memory", "Available memory"),
+            ("add", "Add torrent"),
+        ]
+    )
     bot = bot.get_me()
     logger.info("Started bot %s at https://t.me/%s", bot["first_name"], bot["username"])
     updater.idle()
