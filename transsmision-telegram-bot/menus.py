@@ -13,7 +13,12 @@ STATUS_LIST = {
     "stopped": "🛑",
 }
 
-transClient = trans.Client(host=config.TRANSSMISION_HOST, port=9091)
+transClient = trans.Client(
+    host=config.TRANSSMISION_HOST,
+    port=config.TRANSSMISION_PORT,
+    username=config.TRANSSMISION_USERNAME,
+    password=config.TRANSSMISION_PASSWORD,
+)
 
 
 def start_torrent(torrent_id: int):
@@ -308,7 +313,7 @@ def add_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
                 telegram.InlineKeyboardButton(
                     "❌Cancel",
                     callback_data=f"torrentadd_{torrent_id}_cancel",
-                )
+                ),
             ]
         ]
     )
