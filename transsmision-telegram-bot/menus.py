@@ -56,7 +56,7 @@ def add_torrent() -> str:
 
 def get_memory() -> str:
     free_memory = trans.utils.format_size(transClient.free_space(config.DISK))
-    formatted_memory = f"Вільно {round(free_memory[0], 2)} {free_memory[1]}"
+    formatted_memory = f"Free {round(free_memory[0], 2)} {free_memory[1]}"
     return formatted_memory
 
 
@@ -81,7 +81,11 @@ def torrent_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
         speed = trans.utils.format_speed(upload)
         text += f"Upload rate: {round(speed[0], 1)} {speed[1]}\n"
     sizeWhenDone = trans.utils.format_size(torrent.sizeWhenDone)
-    text += f"Total size for download: {round(sizeWhenDone[0], 2)} {sizeWhenDone[1]}"
+    total_size = trans.utils.format_size(torrent.totalSize)
+    total_uploaded = trans.utils.format_size(torrent.uploadedEver)
+    text += f"Total size for download: {round(sizeWhenDone[0], 2)} {sizeWhenDone[1]}\n"
+    text += f"Total size: {round(total_size[0], 2)} {total_size[1]}\n"
+    text += f"Total ever uploaded: {round(total_uploaded[0], 2)} {total_uploaded[1]}\n"
     if torrent.status == "stopped":
         start_stop = [
             telegram.InlineKeyboardButton(
@@ -291,9 +295,9 @@ def add_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
     free_memory = trans.utils.format_size(transClient.free_space(config.DISK))
     total_size = trans.utils.format_size(torrent.totalSize)
     size_when_done = trans.utils.format_size(torrent.sizeWhenDone)
-    text += f"Total size {round(total_size[0], 2)} {total_size[1]}\n"
-    text += f"Chosen to download {round(size_when_done[0], 2)} {size_when_done[1]}\n"
-    text += f"Free disk space {round(free_memory[0], 2)} {free_memory[1]}\n"
+    text += f"Total size: {round(total_size[0], 2)} {total_size[1]}\n"
+    text += f"Chosen to download: {round(size_when_done[0], 2)} {size_when_done[1]}\n"
+    text += f"Free disk space: {round(free_memory[0], 2)} {free_memory[1]}\n"
     reply_markup = telegram.InlineKeyboardMarkup(
         [
             [
