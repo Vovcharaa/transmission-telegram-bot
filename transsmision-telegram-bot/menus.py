@@ -288,6 +288,12 @@ def add_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
         else:
             filename = file.name
         text += f"{file_id+1}. {filename}\n"
+    free_memory = trans.utils.format_size(transClient.free_space(config.DISK))
+    total_size = trans.utils.format_size(torrent.totalSize)
+    size_when_done = trans.utils.format_size(torrent.sizeWhenDone)
+    text += f"Total size {round(total_size[0], 2)} {total_size[1]}\n"
+    text += f"Chosen to download {round(size_when_done[0], 2)} {size_when_done[1]}\n"
+    text += f"Free disk space {round(free_memory[0], 2)} {free_memory[1]}\n"
     reply_markup = telegram.InlineKeyboardMarkup(
         [
             [
