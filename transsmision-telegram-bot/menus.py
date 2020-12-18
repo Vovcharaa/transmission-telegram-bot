@@ -1,5 +1,6 @@
 import telegram
 import transmission_rpc as trans
+from telegram.utils.helpers import escape_markdown
 from . import config, utils
 from typing import Tuple
 import base64
@@ -31,6 +32,10 @@ def stop_torrent(torrent_id: int):
 
 def delete_torrent(torrent_id: int, data: bool = False):
     transClient.remove_torrent(torrent_id, delete_data=data)
+
+
+def torrent_set_files(torrent_id: int, file_id: int, state: bool):
+    transClient.set_files({torrent_id: {file_id: {"selected": state}}})
 
 
 def add_torrent_with_file(file):
@@ -136,15 +141,18 @@ def torrent_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
 
 
 def get_files(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
-    SIZE_OF_LINE = 45
-
+    SIZE_OF_LINE = 100
+    KEYBORD_WIDTH = 5
     torrent = transClient.get_torrent(torrent_id)
     if len(torrent.name) >= SIZE_OF_LINE:
         name = f"{torrent.name[:SIZE_OF_LINE]}.."
     else:
         name = torrent.name
-    text = f"{name}\n"
+    text = f"*{escape_markdown(name, 2)}*\n"
     text += "Files:\n"
+    column = 0
+    row = 0
+    file_keyboard = [[]]
     for file_id, file in enumerate(torrent.files()):
         raw_name = file.name.split("/")
         if len(raw_name) == 2:
@@ -153,23 +161,45 @@ def get_files(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
             filename = file.name
         if len(filename) >= SIZE_OF_LINE:
             filename = f"{filename[:SIZE_OF_LINE]}.."
-        text += f"{file_id+1}. {filename}  {round(utils.file_progress(file), 1)}%\n"
-    reply_markup = telegram.InlineKeyboardMarkup(
+        id = escape_markdown(f"{file_id+1}. ", 2)
+        filename = escape_markdown(filename, 2, "PRE")
+        file_size_raw = trans.utils.format_size(file.size)
+        file_size = escape_markdown(
+            f"{round(file_size_raw[0], 2)} {file_size_raw[1]}", 2
+        )
+        file_progress = escape_markdown(f"{round(utils.file_progress(file), 1)}%", 2)
+        text += f"*{id}*`{filename}`  {file_size} {file_progress}\n"
+        if column >= KEYBORD_WIDTH:
+            file_keyboard.append([])
+            column = 0
+            row += 1
+        if file.selected:
+            button = telegram.InlineKeyboardButton(
+                f"{file_id+1}. ✅",
+                callback_data=f"files_{torrent_id}_{file_id}_0",
+            )
+        else:
+            button = telegram.InlineKeyboardButton(
+                f"{file_id+1}. ❌",
+                callback_data=f"files_{torrent_id}_{file_id}_1",
+            )
+        column += 1
+        file_keyboard[row].append(button)
+    control_buttons = [
         [
-            [
-                telegram.InlineKeyboardButton(
-                    "🔄Reload",
-                    callback_data=f"torrentsfiles_{torrent_id}_reload",
-                )
-            ],
-            [
-                telegram.InlineKeyboardButton(
-                    "⏪Back",
-                    callback_data=f"torrent_{torrent_id}",
-                )
-            ],
-        ]
-    )
+            telegram.InlineKeyboardButton(
+                "🔄Reload",
+                callback_data=f"torrentsfiles_{torrent_id}_reload",
+            )
+        ],
+        [
+            telegram.InlineKeyboardButton(
+                "⏪Back",
+                callback_data=f"torrent_{torrent_id}",
+            )
+        ],
+    ]
+    reply_markup = telegram.InlineKeyboardMarkup(file_keyboard + control_buttons)
     return text, reply_markup
 
 

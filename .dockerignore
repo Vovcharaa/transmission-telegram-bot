@@ -1,9 +1,9 @@
 .vscode
-xlsx
 venv
 .git
 **/__pycache__/**
-reporterdocker.tar
 config/
 .env
 .mypy_cache
+.chglog
+.github
