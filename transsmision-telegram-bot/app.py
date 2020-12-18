@@ -35,13 +35,17 @@ def get_torrents_inline(update, context):
     torrent_list, keyboard = menus.get_torrents(start_point)
     if len(callback) == 3 and callback[2] == "reload":
         try:
-            query.edit_message_text(text=torrent_list, reply_markup=keyboard)
+            query.edit_message_text(
+                text=torrent_list, reply_markup=keyboard, parse_mode="MarkdownV2"
+            )
             query.answer(text="Reloaded")
         except telegram.error.BadRequest:
             query.answer(text="Nothing to reload")
     else:
         query.answer()
-        query.edit_message_text(text=torrent_list, reply_markup=keyboard)
+        query.edit_message_text(
+            text=torrent_list, reply_markup=keyboard, parse_mode="MarkdownV2"
+        )
 
 
 def torrent_menu_inline(update, context):
@@ -60,13 +64,17 @@ def torrent_menu_inline(update, context):
     text, reply_markup = menus.torrent_menu(torrent_id)
     if len(callback) == 3 and callback[2] == "reload":
         try:
-            query.edit_message_text(text=text, reply_markup=reply_markup)
+            query.edit_message_text(
+                text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+            )
             query.answer(text="Reloaded")
         except telegram.error.BadRequest:
             query.answer(text="Nothing to reload")
     else:
         query.answer()
-        query.edit_message_text(text=text, reply_markup=reply_markup)
+        query.edit_message_text(
+            text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+        )
 
 
 def torrent_files_inline(update, context):

@@ -72,30 +72,38 @@ def get_memory() -> str:
 
 def torrent_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
     torrent = transClient.get_torrent(torrent_id)
-    text = (
-        f"{torrent.name}\n"
-        f"{utils.progress_bar(torrent.progress)}  {round(torrent.progress, 1)}% "
-        f"{STATUS_LIST[torrent.status]}\n"
+    text = f"*{escape_markdown(torrent.name, 2)}*\n"
+    text += escape_markdown(
+        f"{utils.progress_bar(torrent.progress)}  {(round(torrent.progress, 1))}% ", 2
     )
+    text += escape_markdown(f"{STATUS_LIST[torrent.status]}\n")
     if download := torrent.rateDownload:
         speed = trans.utils.format_speed(download)
-        text += (
+        raw_text = (
             f"Time remaining: {utils.formated_eta(torrent)}\n"
             f"Download rate: {round(speed[0], 1)} {speed[1]}\n"
         )
+        text += escape_markdown(raw_text, 2)
     if torrent.status != "seeding":
         downloaded_bytes: int = torrent.sizeWhenDone - torrent.leftUntilDone
         downloaded = trans.utils.format_size(downloaded_bytes)
-        text += f"Downloaded: {round(downloaded[0],2)} {downloaded[1]}\n"
+        raw_text = f"Downloaded: {round(downloaded[0],2)} {downloaded[1]}\n"
+        text += escape_markdown(raw_text, 2)
     if upload := torrent.rateUpload:
         speed = trans.utils.format_speed(upload)
-        text += f"Upload rate: {round(speed[0], 1)} {speed[1]}\n"
+        raw_text = f"Upload rate: {round(speed[0], 1)} {speed[1]}\n"
+        text += escape_markdown(raw_text, 2)
     sizeWhenDone = trans.utils.format_size(torrent.sizeWhenDone)
     total_size = trans.utils.format_size(torrent.totalSize)
     total_uploaded = trans.utils.format_size(torrent.uploadedEver)
-    text += f"Total size for download: {round(sizeWhenDone[0], 2)} {sizeWhenDone[1]}\n"
-    text += f"Total size: {round(total_size[0], 2)} {total_size[1]}\n"
-    text += f"Total ever uploaded: {round(total_uploaded[0], 2)} {total_uploaded[1]}\n"
+    raw_text = (
+        f"Total size for download: {round(sizeWhenDone[0], 2)} {sizeWhenDone[1]}\n"
+    )
+    raw_text += f"Total size: {round(total_size[0], 2)} {total_size[1]}\n"
+    raw_text += (
+        f"Total ever uploaded: {round(total_uploaded[0], 2)} {total_uploaded[1]}\n"
+    )
+    text += escape_markdown(raw_text, 2)
     if torrent.status == "stopped":
         start_stop = [
             telegram.InlineKeyboardButton(
@@ -223,7 +231,9 @@ def get_torrents(start_point: int = 0) -> Tuple[str, telegram.InlineKeyboardMark
                 name = f"{torrent.name[:SIZE_OF_LINE]}.."
             else:
                 name = torrent.name
-            torrent_list += f"{count+1}. {name}   {STATUS_LIST[torrent.status]}\n"
+            name = escape_markdown(name, 2)
+            number = escape_markdown(f"{count+1}. ", 2)
+            torrent_list += f"*{number}*{name}   {STATUS_LIST[torrent.status]}\n"
             if column >= KEYBORD_WIDTH:
                 keyboard.append(list())
                 column = 0
