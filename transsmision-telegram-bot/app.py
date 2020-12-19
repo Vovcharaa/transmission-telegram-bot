@@ -25,7 +25,9 @@ def memory(update, context):
 
 def get_torrents_command(update, context):
     torrent_list, keyboard = menus.get_torrents()
-    update.message.reply_text(torrent_list, reply_markup=keyboard)
+    update.message.reply_text(
+        torrent_list, reply_markup=keyboard, parse_mode="MarkdownV2"
+    )
 
 
 def get_torrents_inline(update, context):
