@@ -38,13 +38,13 @@ def torrent_set_files(torrent_id: int, file_id: int, state: bool):
     transClient.set_files({torrent_id: {file_id: {"selected": state}}})
 
 
-def add_torrent_with_file(file):
+def add_torrent_with_file(file) -> trans.Torrent:
     encoded_file = base64.b64encode(file).decode("utf-8")
     torrent = transClient.add_torrent(encoded_file, paused=True)
     return torrent
 
 
-def add_torrent_with_magnet(url):
+def add_torrent_with_magnet(url) -> trans.Torrent:
     torrent = transClient.add_torrent(url, paused=True)
     return torrent
 
@@ -76,7 +76,7 @@ def torrent_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
     text += escape_markdown(
         f"{utils.progress_bar(torrent.progress)}  {(round(torrent.progress, 1))}% ", 2
     )
-    text += escape_markdown(f"{STATUS_LIST[torrent.status]}\n")
+    text += f"{STATUS_LIST[torrent.status]}\n"
     if download := torrent.rateDownload:
         speed = trans.utils.format_speed(download)
         raw_text = (
@@ -184,12 +184,12 @@ def get_files(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
         if file.selected:
             button = telegram.InlineKeyboardButton(
                 f"{file_id+1}. ✅",
-                callback_data=f"files_{torrent_id}_{file_id}_0",
+                callback_data=f"editfile_{torrent_id}_{file_id}_0",
             )
         else:
             button = telegram.InlineKeyboardButton(
                 f"{file_id+1}. ❌",
-                callback_data=f"files_{torrent_id}_{file_id}_1",
+                callback_data=f"editfile_{torrent_id}_{file_id}_1",
             )
         column += 1
         file_keyboard[row].append(button)
@@ -290,6 +290,8 @@ def get_torrents(start_point: int = 0) -> Tuple[str, telegram.InlineKeyboardMark
                 )
             )
     reply_markup = telegram.InlineKeyboardMarkup(keyboard)
+    if not torrent_list:
+        torrent_list = "Nothing to display"
     return torrent_list, reply_markup
 
 
@@ -327,24 +329,25 @@ def delete_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
 
 def add_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
     torrent = transClient.get_torrent(torrent_id)
-    text = "🆕Adding torrent🆕\n"
-    text += f"{torrent.name}\n"
-    text += "Files:\n"
-    for file_id, file in enumerate(torrent.files()):
-        raw_name = file.name.split("/")
-        if len(raw_name) == 2:
-            filename = raw_name[1]
-        else:
-            filename = file.name
-        text += f"{file_id+1}. {filename}\n"
+    text = "🆕__Adding torrent__🆕\n"
+    text += f"*{escape_markdown(torrent.name, 2)}*\n"
     free_memory = trans.utils.format_size(transClient.free_space(config.DISK))
     total_size = trans.utils.format_size(torrent.totalSize)
     size_when_done = trans.utils.format_size(torrent.sizeWhenDone)
-    text += f"Total size: {round(total_size[0], 2)} {total_size[1]}\n"
-    text += f"Chosen to download: {round(size_when_done[0], 2)} {size_when_done[1]}\n"
-    text += f"Free disk space: {round(free_memory[0], 2)} {free_memory[1]}\n"
+    raw_text = f"Total size: {round(total_size[0], 2)} {total_size[1]}\n"
+    raw_text += (
+        f"Chosen to download: {round(size_when_done[0], 2)} {size_when_done[1]}\n"
+    )
+    raw_text += f"Free disk space: {round(free_memory[0], 2)} {free_memory[1]}\n"
+    text += escape_markdown(raw_text, 2)
     reply_markup = telegram.InlineKeyboardMarkup(
         [
+            [
+                telegram.InlineKeyboardButton(
+                    "📂Files",
+                    callback_data=f"selectfiles_{torrent_id}",
+                )
+            ],
             [
                 telegram.InlineKeyboardButton(
                     "▶️Start",
@@ -354,15 +357,71 @@ def add_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
                     "❌Cancel",
                     callback_data=f"torrentadd_{torrent_id}_cancel",
                 ),
-            ]
+            ],
         ]
     )
     return text, reply_markup
 
 
+def select_files_add_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
+    SIZE_OF_LINE = 100
+    KEYBORD_WIDTH = 5
+    torrent = transClient.get_torrent(torrent_id)
+    if len(torrent.name) >= SIZE_OF_LINE:
+        name = f"{torrent.name[:SIZE_OF_LINE]}.."
+    else:
+        name = torrent.name
+    text = f"*{escape_markdown(name, 2)}*\n"
+    text += "Files:\n"
+    column = 0
+    row = 0
+    file_keyboard = [[]]
+    for file_id, file in enumerate(torrent.files()):
+        raw_name = file.name.split("/")
+        if len(raw_name) == 2:
+            filename = raw_name[1]
+        else:
+            filename = file.name
+        if len(filename) >= SIZE_OF_LINE:
+            filename = f"{filename[:SIZE_OF_LINE]}.."
+        id = escape_markdown(f"{file_id+1}. ", 2)
+        filename = escape_markdown(filename, 2, "PRE")
+        file_size_raw = trans.utils.format_size(file.size)
+        file_size = escape_markdown(
+            f"{round(file_size_raw[0], 2)} {file_size_raw[1]}", 2
+        )
+        text += f"*{id}*`{filename}`  {file_size}\n"
+        if column >= KEYBORD_WIDTH:
+            file_keyboard.append([])
+            column = 0
+            row += 1
+        if file.selected:
+            button = telegram.InlineKeyboardButton(
+                f"{file_id+1}. ✅",
+                callback_data=f"fileselect_{torrent_id}_{file_id}_0",
+            )
+        else:
+            button = telegram.InlineKeyboardButton(
+                f"{file_id+1}. ❌",
+                callback_data=f"fileselect_{torrent_id}_{file_id}_1",
+            )
+        column += 1
+        file_keyboard[row].append(button)
+    control_buttons = [
+        [
+            telegram.InlineKeyboardButton(
+                "⏪Back",
+                callback_data=f"addmenu_{torrent_id}",
+            )
+        ],
+    ]
+    reply_markup = telegram.InlineKeyboardMarkup(file_keyboard + control_buttons)
+    return text, reply_markup
+
+
 def started_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
     torrent = transClient.get_torrent(torrent_id)
-    text = f"Torrent {torrent.name} started successfully\n"
+    text = f"Torrent *{escape_markdown(torrent.name, 2)}* started successfully\n"
     reply_markup = telegram.InlineKeyboardMarkup(
         [
             [

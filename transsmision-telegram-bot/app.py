@@ -125,7 +125,9 @@ def torrent_file_handler(update, context):
     torrent = menus.add_torrent_with_file(file_bytes)
     update.message.reply_text("Torrent added", quote=True)
     text, reply_markup = menus.add_menu(torrent.id)
-    update.message.reply_text(text=text, reply_markup=reply_markup)
+    update.message.reply_text(
+        text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+    )
 
 
 def magnet_url_handler(update, context):
@@ -133,25 +135,39 @@ def magnet_url_handler(update, context):
     torrent = menus.add_torrent_with_magnet(magnet_url)
     update.message.reply_text("Torrent added", quote=True)
     text, reply_markup = menus.add_menu(torrent.id)
-    update.message.reply_text(text=text, reply_markup=reply_markup)
+    update.message.reply_text(
+        text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+    )
 
 
-def after_adding(update, context):
+def torrent_adding_actions(update, context):
     query = update.callback_query
     callback = query.data.split("_")
     torrent_id = int(callback[1])
     if len(callback) == 3 and callback[2] == "start":
         menus.start_torrent(torrent_id)
-        query.answer(text="✅Started")
         text, reply_markup = menus.started_menu(torrent_id)
-        query.edit_message_text(text=text, reply_markup=reply_markup)
+        query.answer(text="✅Started")
+        query.edit_message_text(
+            text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+        )
     elif len(callback) == 3 and callback[2] == "cancel":
         menus.delete_torrent(torrent_id, True)
         query.answer(text="✅Canceled")
         query.edit_message_text("Torrent deleted🗑")
 
 
-def select_for_download(update, context):
+def torrent_adding(update, context):
+    query = update.callback_query
+    callback = query.data.split("_")
+    torrent_id = int(callback[1])
+    text, reply_markup = menus.add_menu(torrent_id)
+    query.edit_message_text(
+        text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+    )
+
+
+def edit_file(update, context):
     query = update.callback_query
     callback = query.data.split("_")
     torrent_id = int(callback[1])
@@ -160,6 +176,31 @@ def select_for_download(update, context):
     menus.torrent_set_files(torrent_id, file_id, bool(to_state))
     query.answer()
     text, reply_markup = menus.get_files(torrent_id)
+    query.edit_message_text(
+        text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+    )
+
+
+def select_for_download(update, context):
+    query = update.callback_query
+    callback = query.data.split("_")
+    torrent_id = int(callback[1])
+    text, reply_markup = menus.select_files_add_menu(torrent_id)
+    query.answer()
+    query.edit_message_text(
+        text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+    )
+
+
+def select_file(update, context):
+    query = update.callback_query
+    callback = query.data.split("_")
+    torrent_id = int(callback[1])
+    file_id = int(callback[2])
+    to_state = int(callback[3])
+    menus.torrent_set_files(torrent_id, file_id, bool(to_state))
+    query.answer()
+    text, reply_markup = menus.select_files_add_menu(torrent_id)
     query.edit_message_text(
         text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
     )
@@ -183,25 +224,34 @@ def run():
     updater.dispatcher.add_handler(CommandHandler("memory", memory))
     updater.dispatcher.add_handler(CommandHandler("torrents", get_torrents_command))
     updater.dispatcher.add_handler(
-        CallbackQueryHandler(select_for_download, pattern="files_*")
+        CallbackQueryHandler(torrent_adding, pattern="addmenu\\_*")
     )
     updater.dispatcher.add_handler(
-        CallbackQueryHandler(after_adding, pattern="torrentadd_*")
+        CallbackQueryHandler(select_file, pattern="fileselect\\_*")
     )
     updater.dispatcher.add_handler(
-        CallbackQueryHandler(torrent_files_inline, pattern="torrentsfiles_*")
+        CallbackQueryHandler(select_for_download, pattern="selectfiles\\_*")
     )
     updater.dispatcher.add_handler(
-        CallbackQueryHandler(delete_torrent_inline, pattern="deletemenutorrent_*")
+        CallbackQueryHandler(edit_file, pattern="editfile\\_*")
     )
     updater.dispatcher.add_handler(
-        CallbackQueryHandler(delete_torrent_action_inline, pattern="deletetorrent_*")
+        CallbackQueryHandler(torrent_adding_actions, pattern="torrentadd\\_*")
     )
     updater.dispatcher.add_handler(
-        CallbackQueryHandler(get_torrents_inline, pattern="torrentsgoto_*")
+        CallbackQueryHandler(torrent_files_inline, pattern="torrentsfiles\\_*")
     )
     updater.dispatcher.add_handler(
-        CallbackQueryHandler(torrent_menu_inline, pattern="torrent_*")
+        CallbackQueryHandler(delete_torrent_inline, pattern="deletemenutorrent\\_*")
+    )
+    updater.dispatcher.add_handler(
+        CallbackQueryHandler(delete_torrent_action_inline, pattern="deletetorrent\\_*")
+    )
+    updater.dispatcher.add_handler(
+        CallbackQueryHandler(get_torrents_inline, pattern="torrentsgoto\\_*")
+    )
+    updater.dispatcher.add_handler(
+        CallbackQueryHandler(torrent_menu_inline, pattern="torrent\\_*")
     )
     bot.set_my_commands(
         [
