@@ -16,3 +16,4 @@ Just fill in bot.env file and run <code>docker-compose up -d</code>
 ## TO DO list:
 * User whitelist
 * Status notifications
+* Support for different types of webhooks (Polling and webhooks without ngrok)
