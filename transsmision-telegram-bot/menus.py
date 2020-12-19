@@ -170,10 +170,12 @@ def get_files(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
         if len(filename) >= SIZE_OF_LINE:
             filename = f"{filename[:SIZE_OF_LINE]}.."
         id = escape_markdown(f"{file_id+1}. ", 2)
-        filename = escape_markdown(filename, 2, "PRE")
         file_size_raw = trans.utils.format_size(file.size)
+        file_completed_raw = trans.utils.format_size(file.completed)
         file_size = escape_markdown(
-            f"{round(file_size_raw[0], 2)} {file_size_raw[1]}", 2
+            f"{round(file_completed_raw[0], 2)} {file_completed_raw[1]}"
+            f" / {round(file_size_raw[0], 2)} {file_size_raw[1]}",
+            2,
         )
         file_progress = escape_markdown(f"{round(utils.file_progress(file), 1)}%", 2)
         if column >= KEYBORD_WIDTH:
@@ -181,17 +183,20 @@ def get_files(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
             column = 0
             row += 1
         if file.selected:
-            text += f"*{id}*`{filename}`  {file_size} {file_progress}\n"
+            filename = escape_markdown(filename, 2, "PRE")
+            text += f"*{id}*`{filename}`\n"
             button = telegram.InlineKeyboardButton(
                 f"{file_id+1}. ✅",
                 callback_data=f"editfile_{torrent_id}_{file_id}_0",
             )
         else:
-            text += f"*{id}*~{filename}~  {file_size} {file_progress}\n"
+            filename = escape_markdown(filename, 2)
+            text += f"*{id}*~{filename}~\n"
             button = telegram.InlineKeyboardButton(
                 f"{file_id+1}. ❌",
                 callback_data=f"editfile_{torrent_id}_{file_id}_1",
             )
+        text += f"Size: {file_size} {file_progress}\n"
         column += 1
         file_keyboard[row].append(button)
     total_size = trans.utils.format_size(torrent.totalSize)
