@@ -10,7 +10,7 @@ from . import config, utils
 STATUS_LIST = {
     "downloading": "⏬",
     "seeding": "✅",
-    "checking": "🔄",
+    "checking": "🔁",
     "check pending": "📡",
     "stopped": "🛑",
 }
@@ -31,6 +31,10 @@ def start_torrent(torrent_id: int):
 
 def stop_torrent(torrent_id: int):
     transClient.stop_torrent(torrent_id)
+
+
+def verify_torrent(torrent_id: int):
+    transClient.verify_torrent(torrent_id)
 
 
 def delete_torrent(torrent_id: int, data: bool = False):
@@ -76,9 +80,17 @@ def get_memory() -> str:
 def torrent_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
     torrent = transClient.get_torrent(torrent_id)
     text = f"*{escape_markdown(torrent.name, 2)}*\n"
-    text += escape_markdown(
-        f"{utils.progress_bar(torrent.progress)}  {(round(torrent.progress, 1))}% ", 2
-    )
+    if torrent.status != "checking":
+        text += escape_markdown(
+            f"{utils.progress_bar(torrent.progress)}  {(round(torrent.progress, 1))}% ",
+            2,
+        )
+    else:
+        text += escape_markdown(
+            f"{utils.progress_bar(torrent.recheckProgress * 100)}  "
+            f"{(round(torrent.recheckProgress * 100, 1))}% ",
+            2,
+        )
     text += f"{STATUS_LIST[torrent.status]}\n"
     if download := torrent.rateDownload:
         speed = trans.utils.format_speed(download)
@@ -108,33 +120,35 @@ def torrent_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
     )
     text += escape_markdown(raw_text, 2)
     if torrent.status == "stopped":
-        start_stop = [
-            telegram.InlineKeyboardButton(
-                "▶️Start",
-                callback_data=f"torrent_{torrent_id}_start",
-            )
-        ]
+        start_stop = telegram.InlineKeyboardButton(
+            "▶️Start",
+            callback_data=f"torrent_{torrent_id}_start",
+        )
     else:
-        start_stop = [
-            telegram.InlineKeyboardButton(
-                "⏹Stop",
-                callback_data=f"torrent_{torrent_id}_stop",
-            )
-        ]
+        start_stop = telegram.InlineKeyboardButton(
+            "⏹Stop",
+            callback_data=f"torrent_{torrent_id}_stop",
+        )
     reply_markup = telegram.InlineKeyboardMarkup(
         [
-            start_stop,
             [
                 telegram.InlineKeyboardButton(
                     "🗑Delete",
                     callback_data=f"deletemenutorrent_{torrent_id}",
-                )
+                ),
+                start_stop,
             ],
             [
+                telegram.InlineKeyboardButton(
+                    "🔁Verify",
+                    callback_data=f"torrent_{torrent_id}_verify",
+                ),
                 telegram.InlineKeyboardButton(
                     "📂Files",
                     callback_data=f"torrentsfiles_{torrent_id}",
                 ),
+            ],
+            [
                 telegram.InlineKeyboardButton(
                     "🔄Reload",
                     callback_data=f"torrent_{torrent_id}_reload",

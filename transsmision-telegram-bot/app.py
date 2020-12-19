@@ -63,6 +63,10 @@ def torrent_menu_inline(update, context):
             menus.stop_torrent(torrent_id)
             query.answer(text="Stopped")
             time.sleep(0.2)
+        elif callback[2] == "verify":
+            menus.verify_torrent(torrent_id)
+            query.answer(text="Verifying")
+            time.sleep(0.2)
     text, reply_markup = menus.torrent_menu(torrent_id)
     if len(callback) == 3 and callback[2] == "reload":
         try:
