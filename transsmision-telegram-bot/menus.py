@@ -93,13 +93,13 @@ def torrent_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
         speed = trans.utils.format_speed(upload)
         raw_text = f"Upload rate: {round(speed[0], 1)} {speed[1]}\n"
         text += escape_markdown(raw_text, 2)
-    sizeWhenDone = trans.utils.format_size(torrent.sizeWhenDone)
+    size_when_done = trans.utils.format_size(torrent.sizeWhenDone)
     total_size = trans.utils.format_size(torrent.totalSize)
     total_uploaded = trans.utils.format_size(torrent.uploadedEver)
     raw_text = (
-        f"Total size for download: {round(sizeWhenDone[0], 2)} {sizeWhenDone[1]}\n"
+        f"Size to download: {round(size_when_done[0], 2)} {size_when_done[1]}"
+        f" / {round(total_size[0], 2)} {total_size[1]}\n"
     )
-    raw_text += f"Total size: {round(total_size[0], 2)} {total_size[1]}\n"
     raw_text += (
         f"Total ever uploaded: {round(total_uploaded[0], 2)} {total_uploaded[1]}\n"
     )
@@ -193,6 +193,13 @@ def get_files(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
             )
         column += 1
         file_keyboard[row].append(button)
+    total_size = trans.utils.format_size(torrent.totalSize)
+    size_when_done = trans.utils.format_size(torrent.sizeWhenDone)
+    text += escape_markdown(
+        f"Size to download: {round(size_when_done[0], 2)} {size_when_done[1]}"
+        f" / {round(total_size[0], 2)} {total_size[1]}",
+        2,
+    )
     control_buttons = [
         [
             telegram.InlineKeyboardButton(
@@ -334,9 +341,9 @@ def add_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
     free_memory = trans.utils.format_size(transClient.free_space(config.DISK))
     total_size = trans.utils.format_size(torrent.totalSize)
     size_when_done = trans.utils.format_size(torrent.sizeWhenDone)
-    raw_text = f"Total size: {round(total_size[0], 2)} {total_size[1]}\n"
-    raw_text += (
-        f"Chosen to download: {round(size_when_done[0], 2)} {size_when_done[1]}\n"
+    raw_text = (
+        f"Size to download: {round(size_when_done[0], 2)} {size_when_done[1]}"
+        f" / {round(total_size[0], 2)} {total_size[1]}\n"
     )
     raw_text += f"Free disk space: {round(free_memory[0], 2)} {free_memory[1]}\n"
     text += escape_markdown(raw_text, 2)
@@ -407,6 +414,13 @@ def select_files_add_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboard
             )
         column += 1
         file_keyboard[row].append(button)
+    total_size = trans.utils.format_size(torrent.totalSize)
+    size_when_done = trans.utils.format_size(torrent.sizeWhenDone)
+    text += escape_markdown(
+        f"Size to download: {round(size_when_done[0], 2)} {size_when_done[1]}"
+        f" / {round(total_size[0], 2)} {total_size[1]}",
+        2,
+    )
     control_buttons = [
         [
             telegram.InlineKeyboardButton(
