@@ -1,10 +1,11 @@
+import base64
+from typing import Tuple
+
 import telegram
 import transmission_rpc as trans
 from telegram.utils.helpers import escape_markdown
-from . import config, utils
-from typing import Tuple
-import base64
 
+from . import config, utils
 
 STATUS_LIST = {
     "downloading": "⏬",
@@ -20,6 +21,8 @@ transClient = trans.Client(
     username=config.TRANSSMISION_USERNAME,
     password=config.TRANSSMISION_PASSWORD,
 )
+
+DISK = transClient.get_session().download_dir
 
 
 def start_torrent(torrent_id: int):
@@ -65,7 +68,7 @@ def add_torrent() -> str:
 
 
 def get_memory() -> str:
-    free_memory = trans.utils.format_size(transClient.free_space(config.DISK))
+    free_memory = trans.utils.format_size(transClient.free_space(DISK))
     formatted_memory = f"Free {round(free_memory[0], 2)} {free_memory[1]}"
     return formatted_memory
 
@@ -344,7 +347,7 @@ def add_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
     torrent = transClient.get_torrent(torrent_id)
     text = "🆕__Adding torrent__🆕\n"
     text += f"*{escape_markdown(torrent.name, 2)}*\n"
-    free_memory = trans.utils.format_size(transClient.free_space(config.DISK))
+    free_memory = trans.utils.format_size(transClient.free_space(DISK))
     total_size = trans.utils.format_size(torrent.totalSize)
     size_when_done = trans.utils.format_size(torrent.sizeWhenDone)
     raw_text = (

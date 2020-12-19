@@ -5,7 +5,6 @@ load_dotenv()
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 PORT_NGROK_TUNNEL = 5000
-DISK = os.getenv("DISK")
 
 TRANSSMISION_HOST = os.getenv("TRANSSMISION_HOST")
 TRANSSMISION_PORT = os.getenv("TRANSSMISION_PORT")
