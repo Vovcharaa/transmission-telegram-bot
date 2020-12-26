@@ -1,6 +1,7 @@
 import math
 import time
 import logging
+from functools import wraps
 
 import pyngrok.ngrok
 import transmission_rpc as trans
@@ -66,3 +67,14 @@ def file_progress(file: trans.File) -> float:
         return 100.0 * (completed / size)
     except ZeroDivisionError:
         return 0.0
+
+
+def whitelist(func):
+    @wraps(func)
+    def wrapped(update, context, *args, **kwargs):
+        user_id = update.effective_user.id
+        if user_id not in config.LIST_OF_USERS:
+            logger.warning("Unauthorized access denied for {}.".format(user_id))
+            return
+        return func(update, context, *args, **kwargs)
+    return wrapped

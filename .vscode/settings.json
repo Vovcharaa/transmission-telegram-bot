@@ -2,5 +2,10 @@
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,
     "python.linting.enabled": true,
-    "python.autoComplete.extraPaths": ["./transsmision-telegram-bot"],
+    "python.autoComplete.extraPaths": [
+        "./transsmision-telegram-bot"
+    ],
+    "python.analysis.extraPaths": [
+        "./transsmision-telegram-bot"
+    ],
 }

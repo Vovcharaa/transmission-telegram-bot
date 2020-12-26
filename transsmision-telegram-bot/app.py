@@ -8,21 +8,25 @@ from telegram.ext.filters import Filters
 from . import config, menus, utils
 
 
+@utils.whitelist
 def start(update, context):
     text = menus.menu()
     update.message.reply_text(text, reply_markup=telegram.ReplyKeyboardRemove())
 
 
+@utils.whitelist
 def add(update, context):
     text = menus.add_torrent()
     update.message.reply_text(text)
 
 
+@utils.whitelist
 def memory(update, context):
     formatted_memory = menus.get_memory()
     update.message.reply_text(formatted_memory)
 
 
+@utils.whitelist
 def get_torrents_command(update, context):
     torrent_list, keyboard = menus.get_torrents()
     update.message.reply_text(
@@ -30,6 +34,7 @@ def get_torrents_command(update, context):
     )
 
 
+@utils.whitelist
 def get_torrents_inline(update, context):
     query = update.callback_query
     callback = query.data.split("_")
@@ -50,6 +55,7 @@ def get_torrents_inline(update, context):
         )
 
 
+@utils.whitelist
 def torrent_menu_inline(update, context):
     query = update.callback_query
     callback = query.data.split("_")
@@ -83,6 +89,7 @@ def torrent_menu_inline(update, context):
         )
 
 
+@utils.whitelist
 def torrent_files_inline(update, context):
     query = update.callback_query
     callback = query.data.split("_")
@@ -103,6 +110,7 @@ def torrent_files_inline(update, context):
         )
 
 
+@utils.whitelist
 def delete_torrent_inline(update, context):
     query = update.callback_query
     callback = query.data.split("_")
@@ -112,6 +120,7 @@ def delete_torrent_inline(update, context):
     query.edit_message_text(text=text, reply_markup=reply_markup)
 
 
+@utils.whitelist
 def delete_torrent_action_inline(update, context):
     query = update.callback_query
     callback = query.data.split("_")
@@ -126,6 +135,7 @@ def delete_torrent_action_inline(update, context):
     query.edit_message_text(text=torrent_list, reply_markup=keyboard)
 
 
+@utils.whitelist
 def torrent_file_handler(update, context):
     file_bytes = context.bot.get_file(update.message.document).download_as_bytearray()
     torrent = menus.add_torrent_with_file(file_bytes)
@@ -136,6 +146,7 @@ def torrent_file_handler(update, context):
     )
 
 
+@utils.whitelist
 def magnet_url_handler(update, context):
     magnet_url = update.message.text
     torrent = menus.add_torrent_with_magnet(magnet_url)
@@ -146,6 +157,7 @@ def magnet_url_handler(update, context):
     )
 
 
+@utils.whitelist
 def torrent_adding_actions(update, context):
     query = update.callback_query
     callback = query.data.split("_")
@@ -163,6 +175,7 @@ def torrent_adding_actions(update, context):
         query.edit_message_text("Torrent deleted🗑")
 
 
+@utils.whitelist
 def torrent_adding(update, context):
     query = update.callback_query
     callback = query.data.split("_")
@@ -173,6 +186,7 @@ def torrent_adding(update, context):
     )
 
 
+@utils.whitelist
 def edit_file(update, context):
     query = update.callback_query
     callback = query.data.split("_")
@@ -187,6 +201,7 @@ def edit_file(update, context):
     )
 
 
+@utils.whitelist
 def select_for_download(update, context):
     query = update.callback_query
     callback = query.data.split("_")
@@ -198,6 +213,7 @@ def select_for_download(update, context):
     )
 
 
+@utils.whitelist
 def select_file(update, context):
     query = update.callback_query
     callback = query.data.split("_")
