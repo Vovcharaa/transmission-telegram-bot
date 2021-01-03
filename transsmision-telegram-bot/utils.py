@@ -12,9 +12,18 @@ from . import config
 logger = logging.getLogger(__name__)
 
 
+def setup_updater(updater: Updater):
+    updaters = {
+        "ngrok": setup_ngrok_webhook,
+        "webserver": setup_webserver,
+        "polling": setup_polling
+    }
+    updaters[config.UPDATER_TYPE](updater)
+
+
 def setup_ngrok_webhook(updater: Updater):
     """
-    Setups ngrok tunnel and telegram webhook on it
+    Setups ngrok tunnel and set telegram webhook on it
     """
     logger.info("Setting ngrok webhook")
     logger.debug("Installing ngrok")
@@ -32,6 +41,29 @@ def setup_ngrok_webhook(updater: Updater):
     )
     logger.debug("Setting webhook")
     updater.bot.set_webhook(f"{webhook}/{config.TOKEN}")
+
+
+def setup_webserver(updater: Updater):
+    """
+    Setups webserver and set telegram webhook on it
+    Provide WEBHOOK_DOMAIN for this type of receiving updates
+    """
+    if config.WEBHOOK_DOMAIN:
+        logger.info("Starting webserver for webhook")
+        updater.start_webhook(
+            listen="0.0.0.0", port=config.WEBHOOK_PORT, url_path=config.TOKEN
+        )
+        logger.debug("Setting webhook")
+        updater.bot.set_webhook(f"{config.WEBHOOK_DOMAIN}/{config.TOKEN}")
+    else:
+        raise TypeError("WEBHOOK_DOMAIN env variable is not provided")
+
+
+def setup_polling(updater: Updater):
+    """
+    Polling type of receiving updates
+    """
+    updater.start_polling()
 
 
 def progress_bar(percent: float) -> str:
@@ -74,7 +106,7 @@ def whitelist(func):
     def wrapped(update, context, *args, **kwargs):
         user_id = update.effective_user.id
         if user_id not in config.LIST_OF_USERS:
-            logger.warning("Unauthorized access denied for {}.".format(user_id))
+            logger.warning(f"Unauthorized access denied for {user_id}.")
             return
         return func(update, context, *args, **kwargs)
     return wrapped

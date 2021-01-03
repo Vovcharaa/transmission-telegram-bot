@@ -233,7 +233,7 @@ def run():
     logger.setLevel(logging.INFO)
     bot = telegram.Bot(token=config.TOKEN)
     updater = Updater(token=config.TOKEN)
-    utils.setup_ngrok_webhook(updater)
+    utils.setup_updater(updater)
     updater.dispatcher.add_handler(
         MessageHandler(Filters.document.file_extension("torrent"), torrent_file_handler)
     )
