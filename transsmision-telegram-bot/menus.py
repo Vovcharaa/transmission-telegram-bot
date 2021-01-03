@@ -221,6 +221,8 @@ def get_files(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
         text += f"Size: {file_size} {file_progress}\n"
         column += 1
         file_keyboard[row].append(button)
+    delimiter = "".join(["-" for _ in range(60)])
+    text += escape_markdown(f"{delimiter}\n", 2)
     total_size = trans_utils.format_size(torrent.totalSize)
     size_when_done = trans_utils.format_size(torrent.sizeWhenDone)
     text += escape_markdown(
