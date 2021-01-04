@@ -10,7 +10,7 @@
 * <b>Select files to download</b>
 * <b>User whitelist</b>
 ## Demo
-<img src="/demo/demo.gif" width="600" height="1067"/>
+<img src="/demo/demo.gif" width="300" height="533"/>
 
 ## How to run?
 The easiest way is to run docker container with docker-compose\
