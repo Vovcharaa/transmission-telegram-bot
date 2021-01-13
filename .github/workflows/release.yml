@@ -49,7 +49,9 @@ jobs:
             ghcr.io/vovcharaa/transmission-telegram-bot:${{ env.TAG }}
 
       - name: Install git-chglog
-        run: wget -O git-chglog https://github.com/git-chglog/git-chglog/releases/download/0.9.1/git-chglog_linux_amd64
+        run: |
+          wget -O git-chglog https://github.com/git-chglog/git-chglog/releases/download/0.9.1/git-chglog_linux_amd64
+          chmod +x git-chglog
 
       - name: Generate Changlog
         run: |
