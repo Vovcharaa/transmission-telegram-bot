@@ -272,7 +272,7 @@ def get_torrents(start_point: int = 0) -> Tuple[str, telegram.InlineKeyboardMark
             number = escape_markdown(f"{count+1}. ", 2)
             torrent_list += f"*{number}*{name}   {STATUS_LIST[torrent.status]}\n"
             if column >= KEYBORD_WIDTH:
-                keyboard.append(list())
+                keyboard.append([])
                 column = 0
                 row += 1
             keyboard[row].append(
@@ -284,7 +284,7 @@ def get_torrents(start_point: int = 0) -> Tuple[str, telegram.InlineKeyboardMark
             count += 1
             torrents_count += 1
         else:
-            keyboard.append(list())
+            keyboard.append([])
             row += 1
             keyboard[row].append(
                 telegram.InlineKeyboardButton(
@@ -292,7 +292,7 @@ def get_torrents(start_point: int = 0) -> Tuple[str, telegram.InlineKeyboardMark
                     callback_data=f"torrentsgoto_{start_point}_reload",
                 )
             )
-            keyboard.append(list())
+            keyboard.append([])
             row += 1
             if start_point != 0:
                 keyboard[row].append(
@@ -309,7 +309,7 @@ def get_torrents(start_point: int = 0) -> Tuple[str, telegram.InlineKeyboardMark
             )
             break
     else:
-        keyboard.append(list())
+        keyboard.append([])
         row += 1
         keyboard[row].append(
             telegram.InlineKeyboardButton(
@@ -317,7 +317,7 @@ def get_torrents(start_point: int = 0) -> Tuple[str, telegram.InlineKeyboardMark
                 callback_data=f"torrentsgoto_{start_point}_reload",
             )
         )
-        keyboard.append(list())
+        keyboard.append([])
         row += 1
         if start_point != 0:
             keyboard[row].append(

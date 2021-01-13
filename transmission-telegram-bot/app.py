@@ -285,5 +285,5 @@ def run():
         ]
     )
     bot = bot.get_me()
-    logger.info("Started bot %s at https://t.me/%s", bot["first_name"], bot["username"])
+    logger.info(f"Started bot {bot['first_name']} at https://t.me/{bot['username']}")
     updater.idle()
