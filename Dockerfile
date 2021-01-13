@@ -10,8 +10,8 @@ RUN python3 -m pip install -r requirements.txt --no-cache-dir
 FROM python:3.9-slim
 WORKDIR /app
 COPY --from=build /app /app
-ENV VIRTUAL_ENV=/app/venv \
-    PATH="$VIRTUAL_ENV/bin:$PATH"
+ENV VIRTUAL_ENV=/app/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY . /app
 EXPOSE 8080/tcp
 CMD ["python", "-m", "transmission-telegram-bot"]
