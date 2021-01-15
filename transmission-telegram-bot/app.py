@@ -132,7 +132,9 @@ def delete_torrent_action_inline(update, context):
     query.answer(text="✅Deleted")
     time.sleep(0.1)
     torrent_list, keyboard = menus.get_torrents()
-    query.edit_message_text(text=torrent_list, reply_markup=keyboard)
+    query.edit_message_text(
+        text=torrent_list, reply_markup=keyboard, parse_mode="MarkdownV2"
+    )
 
 
 @utils.whitelist
