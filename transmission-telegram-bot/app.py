@@ -2,32 +2,39 @@ import time
 import logging
 
 import telegram
-from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler, Updater
+import telegram.ext
+from telegram.ext import (
+    CallbackQueryHandler,
+    CommandHandler,
+    MessageHandler,
+    Updater,
+    CallbackContext,
+)
 from telegram.ext.filters import Filters
 
 from . import config, menus, utils
 
 
 @utils.whitelist
-def start(update, context):
+def start(update: telegram.Update, context: CallbackContext):
     text = menus.menu()
     update.message.reply_text(text, reply_markup=telegram.ReplyKeyboardRemove())
 
 
 @utils.whitelist
-def add(update, context):
+def add(update: telegram.Update, context: CallbackContext):
     text = menus.add_torrent()
     update.message.reply_text(text)
 
 
 @utils.whitelist
-def memory(update, context):
+def memory(update: telegram.Update, context: CallbackContext):
     formatted_memory = menus.get_memory()
     update.message.reply_text(formatted_memory)
 
 
 @utils.whitelist
-def get_torrents_command(update, context):
+def get_torrents_command(update: telegram.Update, context: CallbackContext):
     torrent_list, keyboard = menus.get_torrents()
     update.message.reply_text(
         torrent_list, reply_markup=keyboard, parse_mode="MarkdownV2"
@@ -35,7 +42,7 @@ def get_torrents_command(update, context):
 
 
 @utils.whitelist
-def get_torrents_inline(update, context):
+def get_torrents_inline(update: telegram.Update, context: CallbackContext):
     query = update.callback_query
     callback = query.data.split("_")
     start_point = int(callback[1])
@@ -56,7 +63,7 @@ def get_torrents_inline(update, context):
 
 
 @utils.whitelist
-def torrent_menu_inline(update, context):
+def torrent_menu_inline(update: telegram.Update, context: CallbackContext):
     query = update.callback_query
     callback = query.data.split("_")
     torrent_id = int(callback[1])
@@ -90,7 +97,7 @@ def torrent_menu_inline(update, context):
 
 
 @utils.whitelist
-def torrent_files_inline(update, context):
+def torrent_files_inline(update: telegram.Update, context: CallbackContext):
     query = update.callback_query
     callback = query.data.split("_")
     torrent_id = int(callback[1])
@@ -111,7 +118,7 @@ def torrent_files_inline(update, context):
 
 
 @utils.whitelist
-def delete_torrent_inline(update, context):
+def delete_torrent_inline(update: telegram.Update, context: CallbackContext):
     query = update.callback_query
     callback = query.data.split("_")
     torrent_id = int(callback[1])
@@ -121,7 +128,7 @@ def delete_torrent_inline(update, context):
 
 
 @utils.whitelist
-def delete_torrent_action_inline(update, context):
+def delete_torrent_action_inline(update: telegram.Update, context: CallbackContext):
     query = update.callback_query
     callback = query.data.split("_")
     torrent_id = int(callback[1])
@@ -138,7 +145,7 @@ def delete_torrent_action_inline(update, context):
 
 
 @utils.whitelist
-def torrent_file_handler(update, context):
+def torrent_file_handler(update: telegram.Update, context: CallbackContext):
     file_bytes = context.bot.get_file(update.message.document).download_as_bytearray()
     torrent = menus.add_torrent_with_file(file_bytes)
     update.message.reply_text("Torrent added", quote=True)
@@ -149,7 +156,7 @@ def torrent_file_handler(update, context):
 
 
 @utils.whitelist
-def magnet_url_handler(update, context):
+def magnet_url_handler(update: telegram.Update, context: CallbackContext):
     magnet_url = update.message.text
     torrent = menus.add_torrent_with_magnet(magnet_url)
     update.message.reply_text("Torrent added", quote=True)
@@ -160,7 +167,7 @@ def magnet_url_handler(update, context):
 
 
 @utils.whitelist
-def torrent_adding_actions(update, context):
+def torrent_adding_actions(update: telegram.Update, context: CallbackContext):
     query = update.callback_query
     callback = query.data.split("_")
     torrent_id = int(callback[1])
@@ -178,7 +185,7 @@ def torrent_adding_actions(update, context):
 
 
 @utils.whitelist
-def torrent_adding(update, context):
+def torrent_adding(update: telegram.Update, context: CallbackContext):
     query = update.callback_query
     callback = query.data.split("_")
     torrent_id = int(callback[1])
@@ -189,7 +196,7 @@ def torrent_adding(update, context):
 
 
 @utils.whitelist
-def edit_file(update, context):
+def edit_file(update: telegram.Update, context: CallbackContext):
     query = update.callback_query
     callback = query.data.split("_")
     torrent_id = int(callback[1])
@@ -204,7 +211,7 @@ def edit_file(update, context):
 
 
 @utils.whitelist
-def select_for_download(update, context):
+def select_for_download(update: telegram.Update, context: CallbackContext):
     query = update.callback_query
     callback = query.data.split("_")
     torrent_id = int(callback[1])
@@ -216,7 +223,7 @@ def select_for_download(update, context):
 
 
 @utils.whitelist
-def select_file(update, context):
+def select_file(update: telegram.Update, context: CallbackContext):
     query = update.callback_query
     callback = query.data.split("_")
     torrent_id = int(callback[1])
@@ -233,7 +240,6 @@ def select_file(update, context):
 def run():
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
-    bot = telegram.Bot(token=config.TOKEN)
     updater = Updater(token=config.TOKEN)
     utils.setup_updater(updater)
     updater.dispatcher.add_handler(
@@ -277,7 +283,7 @@ def run():
     updater.dispatcher.add_handler(
         CallbackQueryHandler(torrent_menu_inline, pattern="torrent\\_*")
     )
-    bot.set_my_commands(
+    updater.bot.set_my_commands(
         [
             ("start", "Open menu with commands"),
             ("menu", "Open menu with commands"),
@@ -286,6 +292,6 @@ def run():
             ("add", "Add torrent"),
         ]
     )
-    bot = bot.get_me()
-    logger.info(f"Started bot {bot['first_name']} at https://t.me/{bot['username']}")
+    user = updater.bot.get_me()
+    logger.info(f"Started bot {user['first_name']} at https://t.me/{user['username']}")
     updater.idle()
