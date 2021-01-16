@@ -20,7 +20,7 @@ TRANSSMISION_PORT = int(os.getenv("TRANSSMISION_PORT") or 9091)
 TRANSSMISION_USERNAME = os.getenv("TRANSSMISION_USERNAME")
 TRANSSMISION_PASSWORD = os.getenv("TRANSSMISION_PASSWORD")
 
-_list_of_users = os.environ["LIST_OF_USERS"]
-LIST_OF_USERS = [int(i.strip()) for i in _list_of_users.split(",")]
+_whitelist = os.environ["WHITELIST"]
+WHITELIST = [int(i.strip()) for i in _whitelist.split(",")]
 
 PROGRESS_BAR_EMOJIS = {"done": "📦", "inprogress": "⬜"}

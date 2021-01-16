@@ -105,7 +105,7 @@ def whitelist(func):
     @wraps(func)
     def wrapped(update, context, *args, **kwargs):
         user_id = update.effective_user.id
-        if user_id not in config.LIST_OF_USERS:
+        if user_id not in config.WHITELIST:
             logger.warning(f"Unauthorized access denied for {user_id}.")
             return
         return func(update, context, *args, **kwargs)
