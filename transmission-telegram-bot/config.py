@@ -1,4 +1,5 @@
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,8 +16,8 @@ if UPDATER_TYPE not in allowed_updaters:
         f"No such updater.\n Available options: {', '.join(allowed_updaters)}"
     )
 
-TRANSSMISION_HOST = os.environ["TRANSSMISION_HOST"]
-TRANSSMISION_PORT = int(os.getenv("TRANSSMISION_PORT") or 9091)
+TRANSSMISION_HOST = os.getenv("TRANSSMISION_HOST", "127.0.0.1")
+TRANSSMISION_PORT = int(os.getenv("TRANSSMISION_PORT", 9091))
 TRANSSMISION_USERNAME = os.getenv("TRANSSMISION_USERNAME")
 TRANSSMISION_PASSWORD = os.getenv("TRANSSMISION_PASSWORD")
 

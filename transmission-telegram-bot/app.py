@@ -1,14 +1,13 @@
-import time
 import logging
+import time
 
 import telegram
-import telegram.ext
 from telegram.ext import (
+    CallbackContext,
     CallbackQueryHandler,
     CommandHandler,
     MessageHandler,
     Updater,
-    CallbackContext,
 )
 from telegram.ext.filters import Filters
 
@@ -80,20 +79,28 @@ def torrent_menu_inline(update: telegram.Update, context: CallbackContext):
             menus.verify_torrent(torrent_id)
             query.answer(text="Verifying")
             time.sleep(0.2)
-    text, reply_markup = menus.torrent_menu(torrent_id)
-    if len(callback) == 3 and callback[2] == "reload":
-        try:
-            query.edit_message_text(
-                text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
-            )
-            query.answer(text="Reloaded")
-        except telegram.error.BadRequest:
-            query.answer(text="Nothing to reload")
-    else:
-        query.answer()
+    try:
+        text, reply_markup = menus.torrent_menu(torrent_id)
+    except KeyError:
+        query.answer(text="Torrent no longer exists")
+        text, reply_markup = menus.get_torrents()
         query.edit_message_text(
             text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
         )
+    else:
+        if len(callback) == 3 and callback[2] == "reload":
+            try:
+                query.edit_message_text(
+                    text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+                )
+                query.answer(text="Reloaded")
+            except telegram.error.BadRequest:
+                query.answer(text="Nothing to reload")
+        else:
+            query.answer()
+            query.edit_message_text(
+                text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+            )
 
 
 @utils.whitelist
@@ -101,20 +108,28 @@ def torrent_files_inline(update: telegram.Update, context: CallbackContext):
     query = update.callback_query
     callback = query.data.split("_")
     torrent_id = int(callback[1])
-    text, reply_markup = menus.get_files(torrent_id)
-    if len(callback) == 3 and callback[2] == "reload":
-        try:
-            query.edit_message_text(
-                text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
-            )
-            query.answer(text="Reloaded")
-        except telegram.error.BadRequest:
-            query.answer(text="Nothing to reload")
-    else:
-        query.answer()
+    try:
+        text, reply_markup = menus.get_files(torrent_id)
+    except KeyError:
+        query.answer(text="Torrent no longer exists")
+        text, reply_markup = menus.get_torrents()
         query.edit_message_text(
             text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
         )
+    else:
+        if len(callback) == 3 and callback[2] == "reload":
+            try:
+                query.edit_message_text(
+                    text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+                )
+                query.answer(text="Reloaded")
+            except telegram.error.BadRequest:
+                query.answer(text="Nothing to reload")
+        else:
+            query.answer()
+            query.edit_message_text(
+                text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+            )
 
 
 @utils.whitelist
