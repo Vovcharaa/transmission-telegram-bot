@@ -4,8 +4,8 @@ ENV VIRTUAL_ENV=/app/venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY requirements.txt .
-RUN pip install wheel
-RUN python3 -m pip install -r requirements.txt --no-cache-dir
+RUN pip install wheel && \
+    python3 -m pip install -r requirements.txt --no-cache-dir
 
 FROM python:3.9-slim
 WORKDIR /app
