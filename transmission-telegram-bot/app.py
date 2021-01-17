@@ -260,11 +260,24 @@ def select_file(update: telegram.Update, context: CallbackContext):
     )
 
 
+@utils.whitelist
+def error_handler(update: telegram.Update, context: CallbackContext):
+    text = "Something went wrong"
+    if update.callback_query:
+        query = update.callback_query
+        query.edit_message_text(
+            text=text, parse_mode="MarkdownV2"
+        )
+    else:
+        update.message.reply_text(text)
+
+
 def run():
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
     updater = Updater(token=config.TOKEN)
     utils.setup_updater(updater)
+    updater.dispatcher.add_error_handler(error_handler)
     updater.dispatcher.add_handler(
         MessageHandler(Filters.document.file_extension("torrent"), torrent_file_handler)
     )
