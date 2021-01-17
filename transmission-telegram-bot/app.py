@@ -137,9 +137,17 @@ def delete_torrent_inline(update: telegram.Update, context: CallbackContext):
     query = update.callback_query
     callback = query.data.split("_")
     torrent_id = int(callback[1])
-    text, reply_markup = menus.delete_menu(torrent_id)
-    query.answer()
-    query.edit_message_text(text=text, reply_markup=reply_markup)
+    try:
+        text, reply_markup = menus.delete_menu(torrent_id)
+    except KeyError:
+        query.answer(text="Torrent no longer exists")
+        text, reply_markup = menus.get_torrents()
+        query.edit_message_text(
+            text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+        )
+    else:
+        query.answer()
+        query.edit_message_text(text=text, reply_markup=reply_markup)
 
 
 @utils.whitelist

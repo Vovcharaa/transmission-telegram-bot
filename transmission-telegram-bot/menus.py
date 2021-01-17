@@ -257,6 +257,7 @@ def get_torrents(start_point: int = 0) -> Tuple[str, telegram.InlineKeyboardMark
     SIZE_OF_PAGE = 15
     torrents = transClient.get_torrents()
     torrents_count = 1
+    start_point = start_point if torrents[start_point:] else 0
     count = start_point
     keyboard = [[]]
     column = 0
@@ -294,7 +295,7 @@ def get_torrents(start_point: int = 0) -> Tuple[str, telegram.InlineKeyboardMark
             )
             keyboard.append([])
             row += 1
-            if start_point != 0:
+            if start_point:
                 keyboard[row].append(
                     telegram.InlineKeyboardButton(
                         "⏪Back",
@@ -319,7 +320,7 @@ def get_torrents(start_point: int = 0) -> Tuple[str, telegram.InlineKeyboardMark
         )
         keyboard.append([])
         row += 1
-        if start_point != 0:
+        if start_point and torrent_list:
             keyboard[row].append(
                 telegram.InlineKeyboardButton(
                     "⏪Back",
