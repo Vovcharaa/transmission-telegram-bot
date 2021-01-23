@@ -43,7 +43,7 @@ def delete_torrent(torrent_id: int, data: bool = False):
 
 
 def torrent_set_files(torrent_id: int, file_id: int, state: bool):
-    transClient.set_files({str(torrent_id): {str(file_id): {"selected": state}}})
+    transClient.set_files({torrent_id: {file_id: {"selected": state}}})
 
 
 def add_torrent_with_file(file) -> trans.Torrent:
