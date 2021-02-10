@@ -261,6 +261,53 @@ def select_file(update: telegram.Update, context: CallbackContext):
 
 
 @utils.whitelist
+def settings_menu_command(update: telegram.Update, context: CallbackContext):
+    text, reply_markup = menus.settings_menu()
+    update.message.reply_text(
+        text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+    )
+
+
+@utils.whitelist
+def settings_menu_inline(update: telegram.Update, context: CallbackContext):
+    query = update.callback_query
+    text, reply_markup = menus.settings_menu()
+    query.answer()
+    query.edit_message_text(
+        text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+    )
+
+
+@utils.whitelist
+def change_server_menu_inline(update: telegram.Update, context: CallbackContext):
+    query = update.callback_query
+    callback = query.data.split("_")
+    text, reply_markup = menus.change_server_menu(int(callback[1]))
+    query.answer()
+    query.edit_message_text(
+        text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+    )
+
+
+@utils.whitelist
+def change_server_inline(update: telegram.Update, context: CallbackContext):
+    query = update.callback_query
+    callback = query.data.split("_")
+    success = menus.change_server(int(callback[1]))
+    text, reply_markup = menus.change_server_menu(int(callback[2]))
+    if success:
+        query.answer("✅Success")
+    else:
+        query.answer("❌Error❌")
+    try:
+        query.edit_message_text(
+            text=text, reply_markup=reply_markup, parse_mode="MarkdownV2"
+        )
+    except telegram.error.BadRequest:
+        pass
+
+
+@utils.whitelist
 def error_handler(update: telegram.Update, context: CallbackContext):
     text = "Something went wrong"
     if update.callback_query:
@@ -289,6 +336,16 @@ def run():
     updater.dispatcher.add_handler(CommandHandler("add", add))
     updater.dispatcher.add_handler(CommandHandler("memory", memory))
     updater.dispatcher.add_handler(CommandHandler("torrents", get_torrents_command))
+    updater.dispatcher.add_handler(CommandHandler("settings", settings_menu_command))
+    updater.dispatcher.add_handler(
+        CallbackQueryHandler(settings_menu_inline, pattern="settings")
+    )
+    updater.dispatcher.add_handler(
+        CallbackQueryHandler(change_server_inline, pattern="server\\_*")
+    )
+    updater.dispatcher.add_handler(
+        CallbackQueryHandler(change_server_menu_inline, pattern="changeservermenu\\_*")
+    )
     updater.dispatcher.add_handler(
         CallbackQueryHandler(torrent_adding, pattern="addmenu\\_*")
     )
@@ -326,6 +383,7 @@ def run():
             ("torrents", "List all torrents"),
             ("memory", "Available memory"),
             ("add", "Add torrent"),
+            ("settings", "Bot settings")
         ]
     )
     user = updater.bot.get_me()

@@ -16,14 +16,36 @@ STATUS_LIST = {
     "stopped": "🛑",
 }
 
-transClient = trans.Client(
-    host=config.TRANSSMISION_HOST,
-    port=config.TRANSSMISION_PORT,
-    username=config.TRANSSMISION_USERNAME,
-    password=config.TRANSSMISION_PASSWORD,
-)
 
-DISK: str = transClient.get_session().download_dir
+def transsmission_client(client: int = 0) -> Tuple[trans.Client, str, str, bool]:
+    conn = config.TRANSMISSION_CLIENTS[client].copy()
+    del conn["name"]
+    try:
+        tr = trans.Client(**conn)
+    except:  # noqa: E722
+        if client:
+            re = list(transsmission_client())
+            re[-1] = False
+            return tuple(re)
+        else:
+            raise ValueError
+    return (
+        tr,
+        tr.get_session().download_dir,
+        config.TRANSMISSION_CLIENTS[client]["name"],
+        True
+    )
+
+
+transClient, DISK, CURRENT_SERVER, _ = transsmission_client()
+
+
+def change_server(client: int):
+    global transClient
+    global DISK
+    global CURRENT_SERVER
+    transClient, DISK, CURRENT_SERVER, success = transsmission_client(client)
+    return success
 
 
 def start_torrent(torrent_id: int):
@@ -482,4 +504,81 @@ def started_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
             ]
         ]
     )
+    return text, reply_markup
+
+
+def settings_menu() -> Tuple[str, telegram.InlineKeyboardMarkup]:
+    text = "Here is some bot settings:\n"
+    reply_markup = telegram.InlineKeyboardMarkup(
+        [
+            [
+                telegram.InlineKeyboardButton(
+                    "Change transmission server",
+                    callback_data="changeservermenu_0",
+                )
+            ]
+        ]
+    )
+    return text, reply_markup
+
+
+def change_server_menu(
+    start_point: int = 0,
+) -> Tuple[str, telegram.InlineKeyboardMarkup]:
+    SIZE_OF_PAGE = 3
+    text = f"Available servers:\nCurrent: {CURRENT_SERVER}"
+    row = 0
+    server_number = start_point
+    keyboard = []
+    for server in config.TRANSMISSION_CLIENTS[start_point:]:
+        if row < SIZE_OF_PAGE:
+            if server["name"] == CURRENT_SERVER:
+                name = f"{server['name']} 🟢"
+            else:
+                name = server["name"]
+            keyboard.append(
+                [
+                    telegram.InlineKeyboardButton(
+                        name,
+                        callback_data=f"server_{server_number}_{start_point}",
+                    )
+                ]
+            )
+            server_number += 1
+            row += 1
+        else:
+            keyboard.append([])
+            if start_point:
+                keyboard[-1].append(
+                    telegram.InlineKeyboardButton(
+                        "⏪Back",
+                        callback_data=f"changeservermenu_{start_point - SIZE_OF_PAGE}",
+                    )
+                )
+            keyboard[-1].append(
+                telegram.InlineKeyboardButton(
+                    "Next⏩",
+                    callback_data=f"changeservermenu_{row}",
+                )
+            )
+            break
+    else:
+        if start_point:
+            keyboard.append(
+                [
+                    telegram.InlineKeyboardButton(
+                        "⏪Back",
+                        callback_data=f"changeservermenu_{start_point - SIZE_OF_PAGE}",
+                    )
+                ]
+            )
+    keyboard.append(
+        [
+            telegram.InlineKeyboardButton(
+                "⏪Back to Settings",
+                callback_data="settings",
+            )
+        ]
+    )
+    reply_markup = telegram.InlineKeyboardMarkup(keyboard)
     return text, reply_markup
