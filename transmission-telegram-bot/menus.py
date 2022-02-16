@@ -23,17 +23,16 @@ def transsmission_client(client: int = 0) -> Tuple[trans.Client, str, str, bool]
     try:
         tr = trans.Client(**conn)
     except:  # noqa: E722
-        if client:
-            re = list(transsmission_client())
-            re[-1] = False
-            return tuple(re)
-        else:
+        if not client:
             raise ValueError
+        re = list(transsmission_client())
+        re[-1] = False
+        return tuple(re)
     return (
         tr,
         tr.get_session().download_dir,
         config.TRANSMISSION_CLIENTS[client]["name"],
-        True
+        True,
     )
 
 
@@ -68,15 +67,13 @@ def torrent_set_files(torrent_id: int, file_id: int, state: bool):
     transClient.set_files({torrent_id: {file_id: {"selected": state}}})
 
 
-def add_torrent_with_file(file) -> trans.Torrent:
+def add_torrent_with_file(file: bytes) -> trans.Torrent:
     encoded_file = base64.b64encode(file).decode("utf-8")
-    torrent = transClient.add_torrent(encoded_file, paused=True)
-    return torrent
+    return transClient.add_torrent(encoded_file, paused=True)
 
 
-def add_torrent_with_magnet(url) -> trans.Torrent:
-    torrent = transClient.add_torrent(url, paused=True)
-    return torrent
+def add_torrent_with_magnet(url: str) -> trans.Torrent:
+    return transClient.add_torrent(url, paused=True)
 
 
 def menu() -> str:
@@ -90,18 +87,15 @@ def menu() -> str:
 
 
 def add_torrent() -> str:
-    text = "Just send torrent file or magnet url to the bot"
-    return text
+    return "Just send torrent file or magnet url to the bot"
 
 
 def get_memory() -> str:
     size_in_bytes = transClient.free_space(DISK)
-    if size_in_bytes is not None:
-        free_memory = trans_utils.format_size(size_in_bytes)
-        formatted_memory = f"Free {round(free_memory[0], 2)} {free_memory[1]}"
-    else:
-        formatted_memory = "Something went wrong"
-    return formatted_memory
+    if size_in_bytes is None:
+        return "Something went wrong"
+    free_memory = trans_utils.format_size(size_in_bytes)
+    return f"Free {round(free_memory[0], 2)} {free_memory[1]}"
 
 
 def torrent_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
@@ -204,13 +198,10 @@ def get_files(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
     text += "Files:\n"
     column = 0
     row = 0
-    file_keyboard = [[]]
+    file_keyboard: list[list[telegram.InlineKeyboardButton]] = [[]]
     for file_id, file in enumerate(torrent.files()):
         raw_name = file.name.split("/")
-        if len(raw_name) == 2:
-            filename = raw_name[1]
-        else:
-            filename = file.name
+        filename = raw_name[1] if len(raw_name) == 2 else file.name
         if len(filename) >= SIZE_OF_LINE:
             filename = f"{filename[:SIZE_OF_LINE]}.."
         id = escape_markdown(f"{file_id+1}. ", 2)
@@ -243,7 +234,7 @@ def get_files(torrent_id: int) -> Tuple[str, telegram.InlineKeyboardMarkup]:
         text += f"Size: {file_size} {file_progress}\n"
         column += 1
         file_keyboard[row].append(button)
-    delimiter = "".join(["-" for _ in range(60)])
+    delimiter = "".join("-" for _ in range(60))
     text += escape_markdown(f"{delimiter}\n", 2)
     total_size = trans_utils.format_size(torrent.totalSize)
     size_when_done = trans_utils.format_size(torrent.sizeWhenDone)
@@ -281,7 +272,7 @@ def get_torrents(start_point: int = 0) -> Tuple[str, telegram.InlineKeyboardMark
     torrents_count = 1
     start_point = start_point if torrents[start_point:] else 0
     count = start_point
-    keyboard = [[]]
+    keyboard: list[list[telegram.InlineKeyboardButton]] = [[]]
     column = 0
     row = 0
     torrent_list = ""
@@ -439,13 +430,10 @@ def select_files_add_menu(torrent_id: int) -> Tuple[str, telegram.InlineKeyboard
     text += "Files:\n"
     column = 0
     row = 0
-    file_keyboard = [[]]
+    file_keyboard: list[list[telegram.InlineKeyboardButton]] = [[]]
     for file_id, file in enumerate(torrent.files()):
         raw_name = file.name.split("/")
-        if len(raw_name) == 2:
-            filename = raw_name[1]
-        else:
-            filename = file.name
+        filename = raw_name[1] if len(raw_name) == 2 else file.name
         if len(filename) >= SIZE_OF_LINE:
             filename = f"{filename[:SIZE_OF_LINE]}.."
         id = escape_markdown(f"{file_id+1}. ", 2)
@@ -529,13 +517,13 @@ def change_server_menu(
     text = f"Available servers:\nCurrent: {CURRENT_SERVER}"
     row = 0
     server_number = start_point
-    keyboard = []
+    keyboard: list[list[telegram.InlineKeyboardButton]] = []
     for server in config.TRANSMISSION_CLIENTS[start_point:]:
         if row < SIZE_OF_PAGE:
             if server["name"] == CURRENT_SERVER:
                 name = f"{server['name']} 🟢"
             else:
-                name = server["name"]
+                name: str = server["name"]
             keyboard.append(
                 [
                     telegram.InlineKeyboardButton(

@@ -1,4 +1,4 @@
-pyngrok >= 5.0.0
-transmission-rpc >= 3.2.1
-python-telegram-bot >= 13.0
+pyngrok
+transmission-rpc
+python-telegram-bot
 python-dotenv

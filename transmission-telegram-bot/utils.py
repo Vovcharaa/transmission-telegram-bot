@@ -2,10 +2,17 @@ import math
 import time
 import logging
 from functools import wraps
+from typing import TYPE_CHECKING, Any, Callable
 
 import pyngrok.ngrok
 import transmission_rpc as trans
-from telegram.ext import Updater
+
+if TYPE_CHECKING:
+    from telegram.update import Update
+    from telegram.ext import (
+        CallbackContext,
+        Updater,
+    )
 
 from . import config
 
@@ -16,7 +23,7 @@ def setup_updater(updater: Updater):
     updaters = {
         "ngrok": setup_ngrok_webhook,
         "webserver": setup_webserver,
-        "polling": setup_polling
+        "polling": setup_polling,
     }
     updaters[config.UPDATER_TYPE](updater)
 
@@ -33,7 +40,7 @@ def setup_ngrok_webhook(updater: Updater):
         addr=config.PORT_NGROK_TUNNEL, proto="http", options={"bind_tls": True}
     )
     time.sleep(1)
-    public_url = webhook_tunnel.public_url
+    public_url: str = webhook_tunnel.public_url
     webhook = public_url.replace("http:", "https:")
     logger.debug("Starting webhook")
     updater.start_webhook(
@@ -56,7 +63,7 @@ def setup_webserver(updater: Updater):
         logger.debug("Setting webhook")
         updater.bot.set_webhook(f"{config.WEBHOOK_DOMAIN}/{config.TOKEN}")
     else:
-        raise TypeError("WEBHOOK_DOMAIN env variable is not provided")
+        raise ValueError("WEBHOOK_DOMAIN env variable is not provided")
 
 
 def setup_polling(updater: Updater):
@@ -101,12 +108,18 @@ def file_progress(file: trans.File) -> float:
         return 0.0
 
 
-def whitelist(func):
+def whitelist(func: Callable[[Any, Any], Any]):
     @wraps(func)
-    def wrapped(update, context, *args, **kwargs):
-        user_id = update.effective_user.id
+    def wrapped(
+        update: Update,
+        context: CallbackContext[Any, Any, Any],
+        *args: Any,
+        **kwargs: Any,
+    ):
+        user_id: int = update.effective_user.id  # type: ignore
         if user_id not in config.WHITELIST:
             logger.warning(f"Unauthorized access denied for {user_id}.")
             return
         return func(update, context, *args, **kwargs)
+
     return wrapped
