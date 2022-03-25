@@ -1,4 +1,4 @@
-FROM python:3.9 as build
+FROM python:3.10.4 as build
 WORKDIR /app
 ENV VIRTUAL_ENV=/app/venv
 RUN python3 -m venv $VIRTUAL_ENV
@@ -7,7 +7,7 @@ COPY requirements.txt .
 RUN pip install wheel && \
     python3 -m pip install -r requirements.txt --no-cache-dir
 
-FROM python:3.9-slim
+FROM python:3.10.4
 WORKDIR /app
 COPY --from=build /app /app
 ENV VIRTUAL_ENV=/app/venv
