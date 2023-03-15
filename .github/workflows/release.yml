@@ -19,7 +19,7 @@ jobs:
         run: echo TAG=${GITHUB_REF##*/} >> $GITHUB_ENV
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1.2.0
